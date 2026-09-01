@@ -1319,3 +1319,28 @@ h1.name .name-letter{
   -webkit-text-fill-color: var(--gold-shine);
   text-shadow: 0 0 26px rgba(233,202,160,.22);
 }
+
+
+/* Correção final de alinhamento: carta e corações permanecem retos. */
+.letter-card,
+.envelope,
+.envelope-body{
+  rotate: 0deg;
+}
+.letter-peek,
+.envelope.open .letter-peek{
+  rotate: 0deg;
+}
+.heart-divider svg,
+.promise-heart,
+.forever-heart{
+  rotate: 0deg;
+}
+.heart-particle{
+  rotate: 0deg;
+}
+@keyframes heartPop{
+  0%{ transform: translate(-50%,-50%) scale(0); opacity: 1; }
+  70%{ opacity: 1; }
+  100%{ transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1); opacity: 0; }
+}
