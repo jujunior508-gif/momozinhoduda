@@ -26,18 +26,77 @@
 
   .glow{
     position: fixed;
-    inset: 0;
+    inset: -10vh -10vw;
     z-index: 0;
     pointer-events: none;
     background:
       radial-gradient(circle at 30% 20%, rgba(233, 202, 160, 0.10), transparent 45%),
       radial-gradient(circle at 75% 70%, rgba(156, 43, 68, 0.18), transparent 50%);
     animation: breathe 8s ease-in-out infinite alternate;
+    transform: translateY(calc(var(--scrollY, 0) * -0.04px));
+    will-change: transform;
   }
 
   @keyframes breathe{
     from{ opacity: 0.7; }
     to{ opacity: 1; }
+  }
+
+  /* soft light that follows the cursor — desktop only, very subtle */
+  .spotlight{
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: radial-gradient(circle 420px at var(--mx, 50%) var(--my, 30%), rgba(233, 202, 160, 0.07), transparent 70%);
+    opacity: 0;
+    transition: opacity 0.6s ease;
+  }
+  .spotlight.active{ opacity: 1; }
+
+  /* thin gold reading-progress line pinned to the top of the viewport */
+  .scroll-progress{
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    z-index: 20;
+    background: rgba(212, 160, 108, 0.08);
+  }
+  .scroll-progress-fill{
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--rose-gold), var(--gold-shine));
+    box-shadow: 0 0 8px rgba(233, 202, 160, 0.5);
+    transition: width 0.1s linear;
+  }
+
+  /* burst of little hearts for celebratory moments (games won, rosary finished) */
+  .heart-burst{
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    pointer-events: none;
+  }
+  .heart-particle{
+    position: absolute;
+    fill: var(--rose-gold);
+    animation: heartPop 1.6s cubic-bezier(.2,.7,.3,1) forwards;
+  }
+  @keyframes heartPop{
+    0%{ transform: translate(-50%,-50%) scale(0) rotate(0deg); opacity: 1; }
+    70%{ opacity: 1; }
+    100%{ transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1) rotate(var(--rot)); opacity: 0; }
+  }
+
+  /* subtle paper-grain texture over the whole page, gives the dark wine tone depth */
+  .grain{
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.05;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 
   .reveal{
@@ -188,11 +247,36 @@
     font-style: italic;
     font-weight: 600;
     font-size: clamp(2.8rem, 9vw, 6rem);
-    color: var(--gold-shine);
-    text-shadow: 0 0 40px rgba(233, 202, 160, 0.25);
     line-height: 1;
+    background: linear-gradient(100deg,
+      var(--gold-shine) 30%, #fff6e6 45%, var(--gold-shine) 60%);
+    background-size: 240% 100%;
+    background-position: 0% 50%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 40px rgba(233, 202, 160, 0.25));
+    animation: nameShimmer 7s ease-in-out 2.4s infinite;
+  }
+
+  .name-letter{
+    display: inline-block;
     opacity: 0;
-    animation: riseIn 1.4s ease forwards 0.5s;
+    transform: translateY(0.4em) rotate(3deg);
+    animation: letterRise 0.8s cubic-bezier(.2,.8,.2,1) forwards;
+    animation-delay: calc(0.5s + (var(--i, 0) * 0.045s));
+  }
+  .name-letter.is-space{ width: 0.3em; }
+
+  @keyframes letterRise{
+    from{ opacity: 0; transform: translateY(0.5em) rotate(4deg); }
+    to{ opacity: 1; transform: translateY(0) rotate(0deg); }
+  }
+
+  @keyframes nameShimmer{
+    0%{ background-position: 0% 50%; }
+    50%{ background-position: 100% 50%; }
+    100%{ background-position: 0% 50%; }
   }
 
   .sub{
@@ -278,6 +362,17 @@
     animation: none;
     transform: translate(-50%, -50%) scale(0);
     opacity: 0;
+  }
+
+  .seal.cracking{
+    animation: sealCrack 0.28s ease-in-out;
+  }
+
+  @keyframes sealCrack{
+    0%{ transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+    30%{ transform: translate(-50%, -50%) scale(1.12) rotate(-4deg); }
+    60%{ transform: translate(-50%, -50%) scale(0.94) rotate(3deg); }
+    100%{ transform: translate(-50%, -50%) scale(1) rotate(0deg); }
   }
 
   .envelope-link{
@@ -467,377 +562,32 @@
     border: none;
     cursor: pointer;
     padding: 0;
+    position: relative;
     transition: background 0.3s ease, transform 0.3s ease;
   }
   .chapter-dot.active{
     background: var(--rose-gold);
     transform: scale(1.3);
   }
-
-  /* generic page/section shared with letter-section styles */
-  .page{
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 8vh 6vw;
-  }
-
-  .page-eyebrow{
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    color: var(--rose-gold);
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    font-size: 0.8rem;
-    margin-bottom: 1.2rem;
-    text-align: center;
-  }
-
-  .page-title{
-    font-family: 'Playfair Display', serif;
-    font-style: italic;
-    font-weight: 600;
-    font-size: clamp(2.2rem, 6vw, 3.6rem);
-    color: var(--gold-shine);
-    text-align: center;
-    margin-bottom: 3rem;
-    line-height: 1.1;
-  }
-
-  /* NOSSA HISTORIA - timeline */
-  .timeline{
-    max-width: 640px;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 2.2rem;
-  }
-  .timeline-item{
-    position: relative;
-    padding-left: 2.4rem;
-    border-left: 1px solid rgba(212, 160, 108, 0.35);
-  }
-  .timeline-item::before{
+  .chapter-dot.active::after{
     content: '';
     position: absolute;
-    left: -6px;
-    top: 4px;
-    width: 11px;
-    height: 11px;
+    inset: -6px;
     border-radius: 50%;
-    background: var(--rose-gold);
-    box-shadow: 0 0 0 4px rgba(211, 160, 108, 0.15);
-  }
-  .timeline-item h3{
-    font-family: 'Playfair Display', serif;
-    font-style: italic;
-    font-size: 1.3rem;
-    color: var(--gold-shine);
-    margin-bottom: 0.4rem;
-  }
-  .timeline-item p{
-    font-size: 1.05rem;
-    line-height: 1.7;
-    color: rgba(247, 233, 225, 0.85);
+    border: 1px solid rgba(211, 160, 108, 0.55);
+    animation: dotPulse 1.8s ease-out infinite;
   }
 
-  /* MOTIVOS - reasons list */
-  .reasons{
-    max-width: 620px;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 1.4rem;
-  }
-  .reason{
-    display: flex;
-    gap: 1rem;
-    align-items: flex-start;
-    font-size: 1.1rem;
-    line-height: 1.7;
-    color: rgba(247, 233, 225, 0.9);
-  }
-  .reason svg{
-    flex-shrink: 0;
-    width: 18px;
-    height: 18px;
-    fill: var(--rose-gold);
-    margin-top: 6px;
+  @keyframes dotPulse{
+    0%{ transform: scale(0.6); opacity: 0.8; }
+    100%{ transform: scale(1.7); opacity: 0; }
   }
 
-  /* MOMENTOS - frames grid */
-  .moments-grid{
-    max-width: 720px;
-    width: 100%;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 1.4rem;
-  }
-  .moment-frame{
-    aspect-ratio: 4/5;
-    border: 1px dashed rgba(212, 160, 108, 0.45);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 1rem;
-    background: rgba(247, 233, 225, 0.03);
-  }
-  .moment-frame span{
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    font-size: 0.95rem;
-    color: rgba(247, 233, 225, 0.55);
-  }
-
-  /* MUSICA */
-  .music-card{
-    max-width: 560px;
-    width: 100%;
-    text-align: center;
-  }
-  .vinyl{
-    width: 140px;
-    height: 140px;
+  /* cursor sparkle trail — desktop only, subtle romantic touch */
+  .cursor-spark{
+    position: fixed;
+    z-index: 50;
+    width: 5px;
+    height: 5px;
     border-radius: 50%;
-    margin: 0 auto 2rem;
-    background: repeating-radial-gradient(circle at center, var(--wine-deepest) 0 3px, var(--wine) 3px 6px);
-    border: 1px solid rgba(212, 160, 108, 0.4);
-    position: relative;
-    animation: spin 6s linear infinite;
-  }
-  .vinyl::after{
-    content: '';
-    position: absolute;
-    top: 50%; left: 50%;
-    width: 20px; height: 20px;
-    background: var(--gold-shine);
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-  }
-  @keyframes spin{ from{ transform: rotate(0deg);} to{ transform: rotate(360deg);} }
-  .music-card p{
-    font-size: 1.1rem;
-    line-height: 1.8;
-    color: rgba(247, 233, 225, 0.88);
-    margin-bottom: 0.6rem;
-  }
-
-  /* TERÇO - Nossa Senhora das Graças & São Bento */
-  .rosary-section{
-    min-height: 100vh;
-  }
-  .rosary-header{
-    text-align: center;
-    margin-bottom: 1rem;
-  }
-  .rosary-caption{
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    font-size: 0.95rem;
-    color: rgba(247, 233, 225, 0.6);
-    margin: -1.6rem auto 1rem;
-    max-width: 34ch;
-  }
-  .rosary-stage{
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    padding-top: 1rem;
-  }
-  .rosary{
-    width: min(210px, 56vw);
-    cursor: grab;
-    touch-action: none;
-    filter: drop-shadow(0 12px 24px rgba(0,0,0,0.45));
-  }
-  .rosary:active{ cursor: grabbing; }
-  .rosary-group{
-    transform-origin: 50% 2%;
-    transform: rotate(0deg);
-    transition: transform 1.1s cubic-bezier(.34,1.56,.64,1);
-  }
-  .rosary.dragging .rosary-group{
-    transition: none;
-  }
-  .bead{ fill: var(--rose-gold); }
-  .bead-alt{ fill: var(--gold-shine); }
-  .chain-line{ stroke: rgba(212,160,108,0.55); stroke-width: 1.5; fill: none; }
-  .medal-bg{ fill: var(--wine); stroke: var(--gold-shine); stroke-width: 1.5; }
-  .medal-mark{ fill: var(--gold-shine); }
-  .medal-mark text, .medal-text{
-    font-family: 'Cormorant Garamond', serif;
-    fill: var(--gold-shine);
-  }
-  .forever-card{
-    max-width: 560px;
-    text-align: center;
-  }
-  .forever-card p{
-    font-size: clamp(1.1rem, 2vw, 1.3rem);
-    line-height: 1.9;
-    color: rgba(247, 233, 225, 0.92);
-    margin-bottom: 1.6rem;
-  }
-  .forever-heart{
-    width: 46px;
-    height: 46px;
-    fill: var(--rose-gold);
-    margin: 0 auto 2rem;
-    display: block;
-    animation: sealPulse 2.2s ease-in-out infinite;
-  }
-
-  /* JOGO DA MEMÓRIA */
-  .game-wrap{
-    max-width: 420px;
-    width: 100%;
-    text-align: center;
-  }
-  .memory-grid{
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
-    max-width: 360px;
-    margin: 0 auto;
-  }
-  .memory-card{
-    aspect-ratio: 3/4;
-    cursor: pointer;
-    perspective: 700px;
-  }
-  .memory-card-inner{
-    width: 100%;
-    height: 100%;
-    position: relative;
-    transition: transform 0.5s cubic-bezier(.4,.2,.2,1);
-    transform-style: preserve-3d;
-  }
-  .memory-card.flipped .memory-card-inner,
-  .memory-card.matched .memory-card-inner{
-    transform: rotateY(180deg);
-  }
-  .memory-card-face{
-    position: absolute;
-    inset: 0;
-    backface-visibility: hidden;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: clamp(1.3rem, 5vw, 1.7rem);
-  }
-  .memory-card-back{
-    background: linear-gradient(160deg, var(--wine), var(--wine-deep));
-    border: 1px solid rgba(212, 160, 108, 0.4);
-    color: var(--rose-gold);
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    font-size: 1.3rem;
-  }
-  .memory-card-front{
-    background: linear-gradient(160deg, #fbeee2, #f0d9c5);
-    transform: rotateY(180deg);
-  }
-  .memory-card.matched .memory-card-front{
-    box-shadow: 0 0 0 3px var(--rose-gold) inset;
-  }
-  .game-status{
-    margin-top: 1.4rem;
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    color: var(--rose-gold);
-  }
-  .game-reset{
-    margin-top: 1rem;
-    background: transparent;
-    border: 1px solid var(--rose-gold);
-    color: var(--rose-gold);
-    padding: 0.5rem 1.3rem;
-    border-radius: 999px;
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    font-size: 0.95rem;
-    cursor: pointer;
-    transition: background 0.3s ease;
-  }
-  .game-reset:hover{
-    background: rgba(212, 160, 108, 0.15);
-  }
-
-  /* JOGO DA VELHA */
-  .tictac-grid{
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-    max-width: 260px;
-    margin: 0 auto;
-  }
-  .tictac-cell{
-    aspect-ratio: 1/1;
-    background: linear-gradient(160deg, rgba(247,233,225,0.06), rgba(247,233,225,0.02));
-    border: 1px solid rgba(212, 160, 108, 0.4);
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: clamp(1.4rem, 6vw, 1.9rem);
-    cursor: pointer;
-    color: var(--gold-shine);
-    transition: background 0.25s ease;
-  }
-  .tictac-cell:hover{
-    background: rgba(212, 160, 108, 0.12);
-  }
-  .tictac-cell.taken{
-    cursor: default;
-  }
-  .tictac-cell.win{
-    background: rgba(212, 160, 108, 0.25);
-  }
-
-  /* FOTOS */
-  .photos-section{
-    min-height: 100vh;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:8vh 6vw;
-  }
-  .photos-wrap{
-    max-width:900px;
-    width:100%;
-  }
-  .photos-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fit, minmax(220px,1fr));
-    gap:1.4rem;
-  }
-  .photo-card{
-    margin:0;
-    border:1px solid rgba(212,160,108,0.35);
-    border-radius:12px;
-    padding:8px;
-    background:rgba(247,233,225,0.04);
-    box-shadow:0 16px 40px rgba(0,0,0,0.25);
-    overflow:hidden;
-  }
-  .photo-card img{
-    display:block;
-    width:100%;
-    aspect-ratio:4/5;
-    object-fit:cover;
-    border-radius:7px;
-  }
-  .photo-card figcaption{
-    text-align:center;
-    padding:0.8rem 0.3rem 0.35rem;
-    font-family:'Cormorant Garamond',serif;
-    font-style:italic;
-    color:rgba(247,233,225,0.75);
-  }
-  @media (max-width:650px){
-    .photos-grid{ grid-template-columns:1fr; }
-  }
+    background:
