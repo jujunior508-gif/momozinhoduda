@@ -586,7 +586,7 @@
       }
     });
     el("line", { x1: 100, y1: 512, x2: 100, y2: 494, class: "chain-line" });
-    const tailY = [486, 460, 438, 416, 390];
+    const tailY = [486, 460, 438, 416];
     const ty = (i) => tailY[i] ?? 0;
     bead(100, ty(0), 8, "pater", "Conta grande — Pai Nosso", {
       step: "2 · Pai Nosso",
@@ -595,19 +595,16 @@
     });
     for (let i = 1;i <= 3; i++) {
       el("line", { x1: 100, y1: ty(i - 1) - 6, x2: 100, y2: ty(i) + 6, class: "chain-line" });
+      const isLast = i === 3;
       bead(100, ty(i), 5, "ave", `Ave Maria ${i} de 3`, {
-        step: `${2 + i} · ${i}ª Ave Maria`,
-        title: "Ave Maria",
-        text: `${AVE_TEXT} (${OPENING_AVE_INTENTIONS[i - 1]})`
+        step: isLast ? "5 · 3ª Ave Maria + Glória" : `${2 + i} · ${i}ª Ave Maria`,
+        title: isLast ? "Ave Maria + Glória" : "Ave Maria",
+        text: isLast ? `${AVE_TEXT} (${OPENING_AVE_INTENTIONS[i - 1]})
+
+E, em seguida: ${GLORIA_TEXT}` : `${AVE_TEXT} (${OPENING_AVE_INTENTIONS[i - 1]})`
       });
     }
-    el("line", { x1: 100, y1: ty(3) - 5, x2: 100, y2: ty(4) + 8, class: "chain-line" });
-    bead(100, ty(4), 8, "pater", "Conta grande — Glória ao Pai", {
-      step: "6 · Glória ao Pai",
-      title: "Glória",
-      text: GLORIA_TEXT
-    });
-    el("line", { x1: 100, y1: 382, x2: 100, y2: 356, class: "chain-line" });
+    el("line", { x1: 100, y1: ty(3) - 6, x2: 100, y2: 356, class: "chain-line" });
     const medal = document.createElementNS(SVG_NS, "g");
     medal.setAttribute("class", "rosary-bead bead-medal");
     medal.setAttribute("tabindex", "0");
@@ -625,13 +622,13 @@
     sequence.push({
       el: medal,
       data: {
-        step: "7 · Medalha de São Bento",
+        step: "6 · Medalha de São Bento",
         title: "A intenção",
         text: "Aqui eu guardo a intenção: que São Bento guarde a nossa casa e o nosso caminho, e que a gente continue se escolhendo todos os dias. Por você, Eduarda."
       }
     });
     el("line", { x1: 100, y1: 305, x2: 100, y2: 290, class: "chain-line" });
-    let n = 7;
+    let n = 6;
     for (let d = 0;d < 5; d++) {
       const a0 = 6 + d * 72;
       const p = pointAt(a0);
