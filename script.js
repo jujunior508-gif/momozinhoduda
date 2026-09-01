@@ -164,8 +164,8 @@
   }
  
   if(envelopeLink){
+    // O clique já cobre mouse e toque; manter touchend também causava abertura dupla em celulares.
     envelopeLink.addEventListener('click', openLetter);
-    envelopeLink.addEventListener('touchend', openLetter, { passive: false });
   }
  
   // -----------------------------------------------------------------------
@@ -591,14 +591,19 @@
  
   // reveal new sections on scroll
   const revealEls = document.querySelectorAll('.reveal');
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if(entry.isIntersecting){
-        entry.target.classList.add('in');
-      }
-    });
-  }, { threshold: 0.3 });
-  revealEls.forEach(el => observer.observe(el));
+  if('IntersectionObserver' in window){
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if(entry.isIntersecting){
+          entry.target.classList.add('in');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.3 });
+    revealEls.forEach(el => observer.observe(el));
+  } else {
+    revealEls.forEach(el => el.classList.add('in'));
+  }
  
   // chapter navigation
   const chapterNav = document.getElementById('chapterNav');
@@ -637,4 +642,92 @@
       });
     }, { threshold: 0.1 });
     showNavObserver.observe(letterSection);
+  }
+
+
+  // -----------------------------------------------------------------------
+  // MINI-JOGO DO SUSHI — monte o pedido correto em três escolhas.
+  // -----------------------------------------------------------------------
+  const sushiBoard = document.getElementById('sushiBoard');
+  const sushiOrderEl = document.getElementById('sushiOrder');
+  const sushiScoreEl = document.getElementById('sushiScore');
+  const sushiReset = document.getElementById('sushiReset');
+  const sushiSubmit = document.getElementById('sushiSubmit');
+
+  if(sushiBoard && sushiOrderEl && sushiScoreEl){
+    const ingredients = [
+      { id: 'arroz', label: 'Arroz', icon: '🍚' },
+      { id: 'salmao', label: 'Salmão', icon: '🍣' },
+      { id: 'abacate', label: 'Abacate', icon: '🥑' },
+      { id: 'pepino', label: 'Pepino', icon: '🥒' },
+      { id: 'camarao', label: 'Camarão', icon: '🍤' },
+      { id: 'nori', label: 'Nori', icon: '🌿' },
+      { id: 'gergelim', label: 'Gergelim', icon: '✨' },
+      { id: 'molho', label: 'Molho tarê', icon: '🥢' },
+      { id: 'wasabi', label: 'Wasabi', icon: '🟢' }
+    ];
+    const orders = [
+      { name: 'Salmão especial', items: ['arroz', 'salmao', 'abacate'] },
+      { name: 'Camarão crocante', items: ['arroz', 'camarao', 'nori'] },
+      { name: 'Sushi clássico', items: ['arroz', 'salmao', 'nori'] },
+      { name: 'Rolinho fresco', items: ['arroz', 'pepino', 'abacate'] }
+    ];
+    let sushiScore = 0;
+    let currentOrder;
+    let selected = new Set();
+
+    const shuffleIngredients = () => [...ingredients].sort(() => Math.random() - .5);
+    const renderSushi = () => {
+      selected = new Set();
+      currentOrder = orders[Math.floor(Math.random() * orders.length)];
+      sushiOrderEl.className = 'sushi-order';
+      sushiOrderEl.textContent = `Pedido: ${currentOrder.name}. Escolha exatamente 3 ingredientes.`;
+      sushiBoard.innerHTML = '';
+      shuffleIngredients().forEach(item => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'sushi-ingredient';
+        button.dataset.id = item.id;
+        button.setAttribute('aria-pressed', 'false');
+        button.innerHTML = `<span class="ingredient-icon" aria-hidden="true">${item.icon}</span><span>${item.label}</span>`;
+        button.addEventListener('click', () => {
+          if(selected.has(item.id)){
+            selected.delete(item.id);
+            button.classList.remove('selected');
+            button.setAttribute('aria-pressed', 'false');
+          } else if(selected.size < 3){
+            selected.add(item.id);
+            button.classList.add('selected');
+            button.setAttribute('aria-pressed', 'true');
+          }
+          sushiOrderEl.className = 'sushi-order';
+          sushiOrderEl.textContent = `${selected.size}/3 ingredientes escolhidos para ${currentOrder.name}.`;
+        });
+        sushiBoard.appendChild(button);
+      });
+    };
+    const submitSushi = () => {
+      if(selected.size !== 3){
+        sushiOrderEl.className = 'sushi-order error';
+        sushiOrderEl.textContent = 'Escolha 3 ingredientes antes de servir.';
+        return;
+      }
+      const expected = new Set(currentOrder.items);
+      const isCorrect = selected.size === expected.size && [...selected].every(item => expected.has(item));
+      if(isCorrect){
+        sushiScore += 10;
+        sushiScoreEl.textContent = sushiScore;
+        sushiOrderEl.className = 'sushi-order success';
+        sushiOrderEl.textContent = `Pedido perfeito! +10 pontos. ${currentOrder.name} ficou lindo para nós.`;
+        const rect = sushiBoard.getBoundingClientRect();
+        burstHearts(rect.left + rect.width / 2, rect.top + rect.height / 2, 12);
+        setTimeout(renderSushi, 1100);
+      } else {
+        sushiOrderEl.className = 'sushi-order error';
+        sushiOrderEl.textContent = 'Quase! Esse pedido precisa de outros ingredientes. Tente novamente.';
+      }
+    };
+    sushiSubmit?.addEventListener('click', submitSushi);
+    sushiReset?.addEventListener('click', () => { sushiScore = 0; sushiScoreEl.textContent = '0'; renderSushi(); });
+    renderSushi();
   }
