@@ -23,6 +23,7 @@
   <button class="chapter-dot" data-target="reasonsSection" aria-label="Por que eu te amo"></button>
   <button class="chapter-dot" data-target="gameSection" aria-label="Jogo da memória"></button>
   <button class="chapter-dot" data-target="ticTacSection" aria-label="Jogo da velha"></button>
+  <button class="chapter-dot" data-target="sushiSection" aria-label="Mini-jogo do sushi"></button>
   <button class="chapter-dot" data-target="musicSection" aria-label="Nossa música"></button>
   <button class="chapter-dot" data-target="foreverSection" aria-label="Para sempre"></button>
 </nav>
@@ -222,6 +223,21 @@
     </div>
   </section>
 
+  <section class="page game-section sushi-section" id="sushiSection">
+    <div class="game-wrap sushi-wrap">
+      <div class="page-eyebrow">mini desafio</div>
+      <h2 class="page-title">Sushi para nós</h2>
+      <p class="rosary-caption">Monte o pedido clicando nos ingredientes certos. Cada combinação vale pontos.</p>
+      <div class="sushi-score" aria-live="polite">pontos: <strong id="sushiScore">0</strong></div>
+      <div class="sushi-board" id="sushiBoard" aria-label="Ingredientes de sushi"></div>
+      <div class="sushi-order" id="sushiOrder" aria-live="polite">Escolha 3 ingredientes para montar o sushi.</div>
+      <div class="sushi-actions">
+        <button class="game-reset" id="sushiReset" type="button">novo pedido</button>
+        <button class="game-reset sushi-submit" id="sushiSubmit" type="button">servir sushi</button>
+      </div>
+    </div>
+  </section>
+
   <section class="page" id="musicSection">
     <div class="music-card">
       <div class="page-eyebrow">capítulo quatro</div>
@@ -261,4 +277,3 @@
 
 </body>
 </html>
-```
