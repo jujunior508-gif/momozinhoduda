@@ -1175,3 +1175,147 @@
   @media (max-width:650px){
     .photos-grid{ grid-template-columns:1fr; }
   }
+
+
+/* Ajustes de estabilidade visual e responsividade */
+.scene,
+.page,
+.letter-section,
+.promise-section{
+  width: 100%;
+  overflow: hidden;
+}
+.scene > *,
+.page > *,
+.letter-section > *,
+.promise-section > *{
+  position: relative;
+  z-index: 2;
+}
+.scene > div,
+.page > div,
+.letter-section > div,
+.promise-section > div{
+  width: min(100%, 760px);
+  margin-inline: auto;
+}
+h1.name{
+  display: block;
+  min-height: 1em;
+  visibility: visible;
+}
+h1.name:not(:has(.name-letter)){
+  opacity: 1;
+}
+.name-letter{
+  will-change: transform, opacity;
+}
+.page-title,
+.page-eyebrow,
+.rosary-caption,
+.game-status{
+  text-wrap: balance;
+}
+button,
+.memory-card,
+.tictac-cell,
+.rosary-bead{
+  -webkit-tap-highlight-color: transparent;
+}
+button:focus-visible,
+.memory-card:focus-visible,
+.tictac-cell:focus-visible{
+  outline: 2px solid var(--gold-shine);
+  outline-offset: 4px;
+}
+
+/* Terço: área centralizada e estados mais claros */
+.rosary-section > div{ width: min(100%, 760px); }
+.rosary-bead,
+#crossBead{ transition: filter .25s ease, opacity .25s ease; }
+.rosary-bead:hover,
+.rosary-bead:focus-visible{ filter: brightness(1.2) drop-shadow(0 0 5px rgba(233,202,160,.45)); }
+.rosary-bead.prayed{ opacity: .58; }
+.rosary-bead.current{ opacity: 1; }
+
+/* Mini-jogo do sushi */
+.sushi-wrap{ max-width: 520px; }
+.sushi-score{
+  margin: -1.2rem auto 1.2rem;
+  color: var(--gold-shine);
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 1.1rem;
+}
+.sushi-score strong{ color: var(--rose-gold); font-size: 1.35em; }
+.sushi-board{
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .8rem;
+  max-width: 420px;
+  margin: 0 auto 1.2rem;
+}
+.sushi-ingredient{
+  min-height: 92px;
+  border: 1px solid rgba(212,160,108,.35);
+  border-radius: 14px;
+  background: linear-gradient(160deg, rgba(247,233,225,.13), rgba(247,233,225,.04));
+  color: var(--cream);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .25rem;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1rem;
+  transition: transform .25s ease, background .25s ease, border-color .25s ease, box-shadow .25s ease;
+}
+.sushi-ingredient .ingredient-icon{ font-size: 1.8rem; }
+.sushi-ingredient:hover{ transform: translateY(-4px); border-color: var(--gold-shine); box-shadow: 0 8px 18px rgba(0,0,0,.2); }
+.sushi-ingredient.selected{
+  transform: translateY(-5px) scale(1.03);
+  background: linear-gradient(160deg, rgba(211,160,108,.35), rgba(109,17,48,.55));
+  border-color: var(--gold-shine);
+  box-shadow: 0 0 0 2px rgba(233,202,160,.2), 0 10px 24px rgba(0,0,0,.25);
+}
+.sushi-order{
+  min-height: 3.2rem;
+  max-width: 38ch;
+  margin: 0 auto;
+  padding: .8rem 1rem;
+  border: 1px dashed rgba(212,160,108,.4);
+  border-radius: 10px;
+  color: rgba(247,233,225,.86);
+  line-height: 1.5;
+}
+.sushi-order.success{ color: var(--gold-shine); animation: prayerFade .5s ease; }
+.sushi-order.error{ color: #f2b2a8; animation: shake .35s ease; }
+.sushi-actions{ display: flex; justify-content: center; flex-wrap: wrap; gap: .7rem; }
+.sushi-submit{ background: rgba(211,160,108,.12); }
+@keyframes shake{ 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
+
+@media (max-width: 560px){
+  .chapter-nav{ gap: 7px; padding: 8px; max-width: calc(100vw - 24px); overflow-x: auto; }
+  .chapter-dot{ flex: 0 0 9px; }
+  .page,
+  .letter-section,
+  .promise-section{ padding-inline: 1.1rem; }
+  .sushi-board{ gap: .55rem; }
+  .sushi-ingredient{ min-height: 78px; font-size: .9rem; }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .sushi-ingredient:hover,
+  .sushi-ingredient.selected{ transform: none; }
+}
+
+/* O nome nunca fica invisível durante o atraso inicial da animação. */
+h1.name .name-letter{ opacity: 1; }
+
+/* Os spans criados pelo JavaScript precisam ter preenchimento próprio para não herdar o transparente do gradiente do h1. */
+h1.name .name-letter{
+  color: var(--gold-shine);
+  -webkit-text-fill-color: var(--gold-shine);
+  text-shadow: 0 0 26px rgba(233,202,160,.22);
+}
