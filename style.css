@@ -1344,3 +1344,33 @@ h1.name .name-letter{
   70%{ opacity: 1; }
   100%{ transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1); opacity: 0; }
 }
+
+
+/* Envelope reto: sem perspectiva 3D ou rotação que distorça a carta. */
+.envelope{
+  perspective: none;
+  transform: none !important;
+  transform-style: flat;
+}
+.envelope-flap{
+  transform: translateY(0) rotate(0deg) !important;
+  transform-origin: top center;
+}
+.envelope.open .envelope-flap{
+  transform: translateY(-92%) rotate(0deg) !important;
+}
+
+
+/* Centralização do envelope: o contêiner ocupava toda a largura, mas o desenho ficava alinhado à esquerda. */
+.envelope-wrap{
+  width: 100% !important;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+.envelope-link{
+  display: block;
+  width: max-content;
+  margin-inline: auto;
+}
