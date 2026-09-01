@@ -638,10 +638,3 @@
     }, { threshold: 0.1 });
     showNavObserver.observe(letterSection);
   }
- 
-
-
-
-
-
-
