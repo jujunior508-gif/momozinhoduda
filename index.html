@@ -3,7 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Para Eduarda</title>
+<title>Para Eduarda — uma carta, um terço e nossa história</title>
+<meta name="description" content="Uma carta digital para Eduarda: nossa história, fotos, o terço de São Bento interativo, jogos e nossa música.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -119,59 +123,54 @@
     <div>
       <div class="rosary-header">
         <div class="page-eyebrow">no meio dessa história</div>
-        <h2 class="page-title">São Bento</h2>
+        <h2 class="page-title">Terço de São Bento</h2>
       </div>
-      <p class="rosary-caption" id="rosaryCaption">Toque em cada conta pra rezar — arraste pra ele balançar.</p>
+      <p class="rosary-caption" id="rosaryCaption">Comece pelo crucifixo e siga conta por conta — na ordem certa, do jeito que se reza.</p>
 
       <div class="rosary-stage">
         <div class="rosary" id="rosary">
-          <svg viewBox="0 0 200 570" xmlns="http://www.w3.org/2000/svg">
-            <g class="rosary-group" id="rosaryGroup">
-              <ellipse cx="100" cy="170" rx="80" ry="115" fill="none" stroke="rgba(212,160,108,0.18)" stroke-width="1"/>
-              <g id="loopBeads"></g>
-
-              <path d="M 86.1 283.3 Q 90 296 100 300" class="chain-line"/>
-              <path d="M 113.9 283.3 Q 110 296 100 300" class="chain-line"/>
-
-              <g id="medalBead" class="rosary-bead" data-role="medal" tabindex="0" role="button" aria-label="Medalha — intenção">
-                <circle cx="100" cy="324" r="24" class="medal-bg"/>
-                <text x="100" y="322" text-anchor="middle" font-size="16" font-style="italic" class="medal-mark">M</text>
-                <text x="100" y="335" text-anchor="middle" font-size="6" class="medal-text">N. S. Graças</text>
-              </g>
-
-              <line x1="100" y1="348" x2="100" y2="366" class="chain-line"/>
-              <circle cx="100" cy="374" r="7.5" class="bead-alt rosary-bead" data-role="pai-nosso" data-idx="tail-0" tabindex="0" role="button" aria-label="Conta — Pai Nosso"/>
-              <line x1="100" y1="381.5" x2="100" y2="396" class="chain-line"/>
-              <circle cx="100" cy="400" r="4.5" class="bead rosary-bead" data-role="ave-maria" data-idx="tail-1" tabindex="0" role="button" aria-label="Conta — Ave Maria"/>
-              <line x1="100" y1="404.5" x2="100" y2="416" class="chain-line"/>
-              <circle cx="100" cy="420" r="4.5" class="bead rosary-bead" data-role="ave-maria" data-idx="tail-2" tabindex="0" role="button" aria-label="Conta — Ave Maria"/>
-              <line x1="100" y1="424.5" x2="100" y2="436" class="chain-line"/>
-              <circle cx="100" cy="440" r="4.5" class="bead rosary-bead" data-role="ave-maria" data-idx="tail-3" tabindex="0" role="button" aria-label="Conta — Ave Maria"/>
-              <line x1="100" y1="444.5" x2="100" y2="458" class="chain-line"/>
-              <circle cx="100" cy="466" r="7.5" class="bead-alt rosary-bead" data-role="gloria" data-idx="tail-4" tabindex="0" role="button" aria-label="Conta — Glória"/>
-              <line x1="100" y1="473.5" x2="100" y2="490" class="chain-line"/>
-
-              <g id="crossBead" class="rosary-bead" data-role="cross" tabindex="0" role="button" aria-label="Crucifixo — Sinal da Cruz" transform="translate(100,528)">
-                <rect x="-4" y="-30" width="8" height="60" rx="2" fill="var(--rose-gold)"/>
-                <rect x="-17" y="-14" width="34" height="8" rx="2" fill="var(--rose-gold)"/>
-              </g>
-            </g>
+          <svg viewBox="0 0 200 600" xmlns="http://www.w3.org/2000/svg" id="rosarySvg">
+            <defs>
+              <radialGradient id="beadGrad" cx="35%" cy="30%">
+                <stop offset="0%" stop-color="#f6ddb8"/>
+                <stop offset="55%" stop-color="#d3a06c"/>
+                <stop offset="100%" stop-color="#8a5a2f"/>
+              </radialGradient>
+              <radialGradient id="paterGrad" cx="35%" cy="30%">
+                <stop offset="0%" stop-color="#fff3dd"/>
+                <stop offset="55%" stop-color="#e9caa0"/>
+                <stop offset="100%" stop-color="#a9743d"/>
+              </radialGradient>
+              <linearGradient id="metalGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#f3dcb6"/>
+                <stop offset="50%" stop-color="#d3a06c"/>
+                <stop offset="100%" stop-color="#9a6a37"/>
+              </linearGradient>
+              <filter id="beadGlow" x="-120%" y="-120%" width="340%" height="340%">
+                <feGaussianBlur stdDeviation="3" result="b"/>
+                <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+            </defs>
+            <g class="rosary-group" id="rosaryGroup"></g>
           </svg>
         </div>
       </div>
 
       <div class="prayer-card" id="prayerCard">
-        <div class="prayer-progress">
-          <div class="prayer-progress-fill" id="prayerProgressFill"></div>
+        <div class="prayer-progress"><div class="prayer-progress-fill" id="prayerProgressFill"></div></div>
+        <div class="prayer-meta">
+          <span class="prayer-step" id="prayerStep">toque no crucifixo para começar</span>
+          <span class="prayer-count" id="prayerCount">0 / 0</span>
         </div>
-        <div class="prayer-step" id="prayerStep">toque na cruz para começar</div>
         <h3 class="prayer-title" id="prayerTitle">Terço por nós dois</h3>
-        <p class="prayer-text" id="prayerText">Cada vez que você quiser, toque numa conta do terço e reze comigo — uma intenção por nós, Eduarda.</p>
-        <button class="game-reset" id="prayerReset" type="button">recomeçar o terço</button>
+        <p class="prayer-text" id="prayerText">Cada conta tem a sua oração. Toque no crucifixo e siga comigo — uma intenção por nós, Eduarda.</p>
+        <div class="prayer-actions">
+          <button class="game-reset prayer-next" id="prayerNext" type="button">próxima conta</button>
+          <button class="game-reset" id="prayerReset" type="button">recomeçar o terço</button>
+        </div>
       </div>
     </div>
   </section>
-
   <section class="page" id="reasonsSection">
     <div>
       <div class="page-eyebrow">capítulo três</div>
@@ -273,7 +272,7 @@
 
 <footer>feito com carinho para Eduarda</footer>
 
-<script src="script.js" defer></script>
 
+<script src="script.js"></script>
 </body>
 </html>
