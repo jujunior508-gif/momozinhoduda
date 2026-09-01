@@ -1374,3 +1374,17 @@ h1.name .name-letter{
   width: max-content;
   margin-inline: auto;
 }
+
+
+/* O coração final é um SVG no fluxo normal; não deve usar o translate do selo. */
+.forever-heart{
+  transform: none;
+  animation: foreverHeartbeat 2.2s ease-in-out infinite;
+}
+@keyframes foreverHeartbeat{
+  0%, 100%{ transform: scale(1); }
+  15%{ transform: scale(1.12); }
+  30%{ transform: scale(1); }
+  45%{ transform: scale(1.08); }
+  60%{ transform: scale(1); }
+}
