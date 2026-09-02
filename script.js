@@ -350,20 +350,51 @@
         }
       });
     });
-    const navObserver = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        const idx = chapterSections.indexOf(entry.target);
-        if (entry.isIntersecting) {
-          dots.forEach((d) => d.classList.remove("active"));
-          if (dots[idx])
-            dots[idx].classList.add("active");
+    const setActiveChapter = (activeIndex) => {
+      dots.forEach((dot, index) => {
+        const isActive = index === activeIndex;
+        dot.classList.toggle("active", isActive);
+        if (isActive)
+          dot.setAttribute("aria-current", "true");
+        else
+          dot.removeAttribute("aria-current");
+      });
+    };
+    const updateActiveChapter = () => {
+      const marker = window.innerHeight * 0.42;
+      let activeIndex = -1;
+      let closestDistance = Infinity;
+      chapterSections.forEach((section, index) => {
+        if (!section)
+          return;
+        const rect = section.getBoundingClientRect();
+        if (rect.top <= marker && rect.bottom >= marker) {
+          activeIndex = index;
+          closestDistance = 0;
+          return;
+        }
+        const distance = Math.min(Math.abs(rect.top - marker), Math.abs(rect.bottom - marker));
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          activeIndex = index;
         }
       });
-    }, { threshold: 0.5 });
-    chapterSections.forEach((sec) => {
-      if (sec)
-        navObserver.observe(sec);
-    });
+      if (activeIndex >= 0)
+        setActiveChapter(activeIndex);
+    };
+    let navTicking = false;
+    const requestChapterUpdate = () => {
+      if (navTicking)
+        return;
+      navTicking = true;
+      window.requestAnimationFrame(() => {
+        updateActiveChapter();
+        navTicking = false;
+      });
+    };
+    window.addEventListener("scroll", requestChapterUpdate, { passive: true });
+    window.addEventListener("resize", requestChapterUpdate, { passive: true });
+    requestChapterUpdate();
     if (letterSection) {
       const showNavObserver = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
@@ -376,8 +407,14 @@
     }
     const sushiBoard = document.getElementById("sushiBoard");
     const sushiOrderEl = document.getElementById("sushiOrder");
+    const sushiOrderNameEl = document.getElementById("sushiOrderName");
+    const sushiOrderHintEl = document.getElementById("sushiOrderHint");
     const sushiScoreEl = document.getElementById("sushiScore");
+    const sushiRoundEl = document.getElementById("sushiRound");
+    const sushiSelectedCountEl = document.getElementById("sushiSelectedCount");
+    const sushiSelectionFillEl = document.getElementById("sushiSelectionFill");
     const sushiReset = document.getElementById("sushiReset");
+    const sushiClear = document.getElementById("sushiClear");
     const sushiSubmit = document.getElementById("sushiSubmit");
     if (sushiBoard && sushiOrderEl && sushiScoreEl) {
       const ingredients = [
@@ -389,23 +426,53 @@
         { id: "nori", label: "Nori", icon: "\uD83C\uDF3F" },
         { id: "gergelim", label: "Gergelim", icon: "✨" },
         { id: "molho", label: "Molho tarê", icon: "\uD83E\uDD62" },
-        { id: "wasabi", label: "Wasabi", icon: "\uD83D\uDFE2" }
+        { id: "wasabi", label: "Wasabi", icon: "\uD83D\uDFE2" },
+        { id: "manga", label: "Manga", icon: "\uD83E\uDD6D" },
+        { id: "creamcheese", label: "Cream cheese", icon: "\uD83E\uDDC0" },
+        { id: "kani", label: "Kani", icon: "\uD83E\uDD80" },
+        { id: "cogumelo", label: "Cogumelo", icon: "\uD83C\uDF44" },
+        { id: "limao", label: "Limão", icon: "\uD83C\uDF4B" },
+        { id: "tempura", label: "Tempurá", icon: "\uD83E\uDD5F" }
       ];
       const orders = [
         { name: "Salmão especial", items: ["arroz", "salmao", "abacate"] },
         { name: "Camarão crocante", items: ["arroz", "camarao", "nori"] },
         { name: "Sushi clássico", items: ["arroz", "salmao", "nori"] },
-        { name: "Rolinho fresco", items: ["arroz", "pepino", "abacate"] }
+        { name: "Rolinho fresco", items: ["arroz", "pepino", "abacate"] },
+        { name: "Manga tropical", items: ["arroz", "manga", "abacate"] },
+        { name: "Salmão cremoso", items: ["arroz", "salmao", "creamcheese"] },
+        { name: "Kani refrescante", items: ["arroz", "kani", "pepino"] },
+        { name: "Veggie da casa", items: ["arroz", "cogumelo", "abacate"] },
+        { name: "Tempurá especial", items: ["arroz", "tempura", "nori"] },
+        { name: "Cítrico do casal", items: ["arroz", "limao", "salmao"] }
       ];
       let sushiScore = 0;
+      let round = 1;
       let currentOrder;
       let selected = new Set;
+      let servingTimer = null;
       const shuffleIngredients = () => [...ingredients].sort(() => Math.random() - 0.5);
+      const updateSelectionUi = () => {
+        const selectedCount = selected.size;
+        if (sushiSelectedCountEl)
+          sushiSelectedCountEl.textContent = String(selectedCount);
+        if (sushiSelectionFillEl)
+          sushiSelectionFillEl.style.width = `${selectedCount / 3 * 100}%`;
+      };
+      const setOrderHint = (message, state = "") => {
+        sushiOrderEl.className = `sushi-order${state ? ` ${state}` : ""}`;
+        if (sushiOrderNameEl)
+          sushiOrderNameEl.textContent = currentOrder?.name || "Escolha sua combinação";
+        if (sushiOrderHintEl)
+          sushiOrderHintEl.textContent = message;
+      };
       const renderSushi = () => {
         selected = new Set;
         currentOrder = orders[Math.floor(Math.random() * orders.length)];
-        sushiOrderEl.className = "sushi-order";
-        sushiOrderEl.textContent = `Pedido: ${currentOrder.name}. Escolha exatamente 3 ingredientes.`;
+        if (sushiRoundEl)
+          sushiRoundEl.textContent = `pedido ${String(round).padStart(2, "0")}`;
+        setOrderHint("Selecione exatamente 3 ingredientes para servir.");
+        updateSelectionUi();
         sushiBoard.innerHTML = "";
         shuffleIngredients().forEach((item) => {
           const button = document.createElement("button");
@@ -413,7 +480,7 @@
           button.className = "sushi-ingredient";
           button.dataset.id = item.id;
           button.setAttribute("aria-pressed", "false");
-          button.innerHTML = `<span class="ingredient-icon" aria-hidden="true">${item.icon}</span><span>${item.label}</span>`;
+          button.innerHTML = `<span class="ingredient-icon" aria-hidden="true">${item.icon}</span><span class="ingredient-label">${item.label}</span><span class="ingredient-check" aria-hidden="true">✓</span>`;
           button.addEventListener("click", () => {
             if (selected.has(item.id)) {
               selected.delete(item.id);
@@ -423,37 +490,60 @@
               selected.add(item.id);
               button.classList.add("selected");
               button.setAttribute("aria-pressed", "true");
+            } else {
+              setOrderHint("Você já escolheu 3 ingredientes. Sirva o pedido ou limpe a seleção.", "error");
+              return;
             }
-            sushiOrderEl.className = "sushi-order";
-            sushiOrderEl.textContent = `${selected.size}/3 ingredientes escolhidos para ${currentOrder.name}.`;
+            updateSelectionUi();
+            const message = selected.size === 3
+              ? "Tudo pronto. Confira a combinação e sirva o sushi."
+              : `${selected.size}/3 ingredientes escolhidos. Escolha mais ${3 - selected.size}.`;
+            setOrderHint(message);
           });
           sushiBoard.appendChild(button);
         });
       };
+      const clearSelection = () => {
+        selected.clear();
+        sushiBoard.querySelectorAll(".sushi-ingredient").forEach((button) => {
+          button.classList.remove("selected");
+          button.setAttribute("aria-pressed", "false");
+        });
+        updateSelectionUi();
+        setOrderHint("Selecione exatamente 3 ingredientes para servir.");
+      };
       const submitSushi = () => {
         if (selected.size !== 3) {
-          sushiOrderEl.className = "sushi-order error";
-          sushiOrderEl.textContent = "Escolha 3 ingredientes antes de servir.";
+          setOrderHint("Escolha 3 ingredientes antes de servir.", "error");
           return;
         }
         const expected = new Set(currentOrder.items);
         const isCorrect = selected.size === expected.size && [...selected].every((item) => expected.has(item));
         if (isCorrect) {
           sushiScore += 10;
-          sushiScoreEl.textContent = sushiScore;
-          sushiOrderEl.className = "sushi-order success";
-          sushiOrderEl.textContent = `Pedido perfeito! +10 pontos. ${currentOrder.name} ficou lindo para nós.`;
+          sushiScoreEl.textContent = String(sushiScore);
+          setOrderHint(`Pedido perfeito! +10 pontos. ${currentOrder.name} ficou lindo para nós.`, "success");
+          sushiBoard.querySelectorAll(".sushi-ingredient.selected").forEach((button) => button.classList.add("correct"));
           const rect = sushiBoard.getBoundingClientRect();
           burstHearts(rect.left + rect.width / 2, rect.top + rect.height / 2, 12);
-          setTimeout(renderSushi, 1100);
+          clearTimeout(servingTimer);
+          servingTimer = setTimeout(() => {
+            round++;
+            renderSushi();
+          }, 1250);
         } else {
-          sushiOrderEl.className = "sushi-order error";
-          sushiOrderEl.textContent = "Quase! Esse pedido precisa de outros ingredientes. Tente novamente.";
+          setOrderHint("Quase! Essa combinação precisa de outros ingredientes. Tente novamente.", "error");
+          sushiBoard.classList.remove("shake-board");
+          sushiBoard.offsetWidth;
+          sushiBoard.classList.add("shake-board");
         }
       };
       sushiSubmit?.addEventListener("click", submitSushi);
+      sushiClear?.addEventListener("click", clearSelection);
       sushiReset?.addEventListener("click", () => {
+        clearTimeout(servingTimer);
         sushiScore = 0;
+        round = 1;
         sushiScoreEl.textContent = "0";
         renderSushi();
       });
@@ -670,12 +760,14 @@
     });
     label(195, crossCy, "left", ["SINAL DA CRUZ"]);
     label(195, crossCy - 18, "right", ["CREIO EM", "DEUS PAI"]);
-    const paterCy = 465, ave1Cy = 490, ave2Cy = 511, ave3Cy = 532;
-    el("line", { x1: 195, y1: 388, x2: 195, y2: 457, class: "chain-line" });
-    el("line", { x1: 195, y1: 473, x2: 195, y2: 485, class: "chain-line" });
-    el("line", { x1: 195, y1: 495, x2: 195, y2: 506, class: "chain-line" });
-    el("line", { x1: 195, y1: 516, x2: 195, y2: 527, class: "chain-line" });
-    el("line", { x1: 195, y1: 537, x2: 195, y2: crossCy - 39, class: "chain-line" });
+    // Corrente de abertura: do crucifixo para cima, a primeira conta é a grande,
+    // seguida pelas três Ave-Marias e, só então, pela medalha.
+    const paterCy = 550, ave1Cy = 525, ave2Cy = 503, ave3Cy = 481;
+    el("line", { x1: 195, y1: 442, x2: 195, y2: 476, class: "chain-line" });
+    el("line", { x1: 195, y1: 486, x2: 195, y2: 498, class: "chain-line" });
+    el("line", { x1: 195, y1: 508, x2: 195, y2: 520, class: "chain-line" });
+    el("line", { x1: 195, y1: 530, x2: 195, y2: 542, class: "chain-line" });
+    el("line", { x1: 195, y1: 558, x2: 195, y2: crossCy - 39, class: "chain-line" });
     bead(195, paterCy, 8, "pater", "Conta grande — Pai Nosso", {
       step: "2 · Pai Nosso",
       title: "Pai Nosso",
