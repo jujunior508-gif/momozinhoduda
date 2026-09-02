@@ -466,14 +466,34 @@
   var AVE_TEXT = "Ave Maria, cheia de graça, o Senhor é convosco, bendita sois vós entre as mulheres e bendito é o fruto do vosso ventre, Jesus. Santa Maria, Mãe de Deus, rogai por nós pecadores, agora e na hora da nossa morte. Amém.";
   var PATER_TEXT = "Pai Nosso que estais no céu, santificado seja o Vosso nome, venha a nós o Vosso reino, seja feita a Vossa vontade, assim na terra como no céu. O pão nosso de cada dia nos dai hoje, perdoai as nossas ofensas, assim como nós perdoamos a quem nos tem ofendido, e não nos deixeis cair em tentação, mas livrai-nos do mal. Amém.";
   var GLORIA_TEXT = "Glória ao Pai, ao Filho e ao Espírito Santo. Como era no princípio, agora e sempre. Amém.";
-  var MYSTERIES = [
-    "1ª dezena — pela nossa fé",
-    "2ª dezena — pela nossa esperança",
-    "3ª dezena — pelo nosso amor",
-    "4ª dezena — pela nossa paz",
-    "5ª dezena — pelo nosso futuro"
-  ];
   var OPENING_AVE_INTENTIONS = ["pela Fé", "pela Esperança", "pela Caridade"];
+  var SAO_BENTO_INVOCATIONS = [
+    {
+      title: "A Cruz Sagrada Seja Minha Luz",
+      text: "A cruz sagrada seja minha luz, não seja o dragão o meu guia.",
+      labelLines: ["A CRUZ SAGRADA", "SEJA MINHA LUZ", "(10x)"]
+    },
+    {
+      title: "Não Seja o Meu Dragão Meu Guia",
+      text: "Não seja o meu dragão meu guia.",
+      labelLines: ["NÃO SEJA O MEU", "DRAGÃO MEU", "GUIA (10x)"]
+    },
+    {
+      title: "Retira-te, Satanás!",
+      text: "Retira-te, Satanás! Nunca me aconselhes coisas vãs.",
+      labelLines: ["RETIRA-TE", "SATANÁS!", "(10x)"]
+    },
+    {
+      title: "Nunca Me Aconselhes Coisas Vãs",
+      text: "Nunca me aconselhes coisas vãs.",
+      labelLines: ["NUNCA ME", "ACONSELHES", "COISAS VÃS", "(10x)"]
+    },
+    {
+      title: "É Mal Que Tu Me Ofereces",
+      text: "É mal que tu me ofereces, bebe tu mesmo o teu veneno.",
+      labelLines: ["É MAL QUE TU ME", "OFERECES. BEBE", "TU MESMO O TEU", "VENENO (10x)"]
+    }
+  ];
   function burst(x, y, count = 20) {
     const layer = document.getElementById("heartBurst");
     if (!layer || window.matchMedia("(prefers-reduced-motion: reduce)").matches)
@@ -549,11 +569,72 @@
       sequence.push({ el: g, data });
       return g;
     };
-    const cx = 100, cy = 178, rx = 78, ry = 112;
+    const label = (bx, by, side, lines) => {
+      const anchorX = side === "left" ? 108 : 282;
+      const textAnchor = side === "left" ? "end" : "start";
+      el("line", {
+        x1: anchorX,
+        y1: by,
+        x2: bx,
+        y2: by,
+        class: "label-line",
+        "marker-end": "url(#labelArrow)"
+      });
+      const circ = document.createElementNS(SVG_NS, "circle");
+      circ.setAttribute("cx", String(anchorX));
+      circ.setAttribute("cy", String(by));
+      circ.setAttribute("r", "1.6");
+      circ.setAttribute("class", "label-dot");
+      group.appendChild(circ);
+      const lineHeight = 9.6;
+      const startY = by - ((lines.length - 1) * lineHeight) / 2;
+      const t = document.createElementNS(SVG_NS, "text");
+      t.setAttribute("x", String(anchorX));
+      t.setAttribute("text-anchor", textAnchor);
+      t.setAttribute("class", "rosary-label");
+      lines.forEach((ln, i) => {
+        const isNote = /^\(.*\)$/.test(ln.trim());
+        const tspan = document.createElementNS(SVG_NS, "tspan");
+        tspan.setAttribute("x", String(anchorX));
+        tspan.setAttribute("y", String(startY + i * lineHeight));
+        if (isNote) tspan.setAttribute("class", "rosary-label-note");
+        tspan.textContent = ln;
+        t.appendChild(tspan);
+      });
+      group.appendChild(t);
+    };
+    const cx = 195, cy = 232, rx = 68, ry = 148;
     const pointAt = (deg) => {
       const rad = deg * Math.PI / 180;
       return { x: cx + rx * Math.sin(rad), y: cy + ry * Math.cos(rad) };
     };
+    const ELLIPSE_STEPS = 720;
+    const arcTable = [0];
+    let prevPt = pointAt(0);
+    for (let i = 1;i <= ELLIPSE_STEPS; i++) {
+      const deg = i / ELLIPSE_STEPS * 360;
+      const pt = pointAt(deg);
+      arcTable.push(arcTable[i - 1] + Math.hypot(pt.x - prevPt.x, pt.y - prevPt.y));
+      prevPt = pt;
+    }
+    const circumference = arcTable[ELLIPSE_STEPS];
+    const degAtArc = (targetArc) => {
+      const s = ((targetArc % circumference) + circumference) % circumference;
+      let lo = 0, hi = ELLIPSE_STEPS;
+      while (lo < hi) {
+        const mid = lo + hi >> 1;
+        if (arcTable[mid] < s)
+          lo = mid + 1;
+        else
+          hi = mid;
+      }
+      const i1 = lo, i0 = Math.max(0, lo - 1);
+      const s0 = arcTable[i0], s1 = arcTable[i1];
+      const d0 = i0 / ELLIPSE_STEPS * 360, d1 = i1 / ELLIPSE_STEPS * 360;
+      const frac = s1 > s0 ? (s - s0) / (s1 - s0) : 0;
+      return d0 + (d1 - d0) * frac;
+    };
+    const pointAtArc = (arcLen) => pointAt(degAtArc(arcLen));
     el("ellipse", {
       cx,
       cy,
@@ -562,8 +643,10 @@
       class: "chain-ring",
       fill: "none"
     });
+    el("ellipse", { cx, cy, rx: rx - 1, ry: ry - 1, class: "chain-ring-inner", fill: "none" });
+    const crossCy = 616;
     const crossWrap = document.createElementNS(SVG_NS, "g");
-    crossWrap.setAttribute("transform", "translate(100,548)");
+    crossWrap.setAttribute("transform", `translate(195,${crossCy})`);
     group.appendChild(crossWrap);
     const cross = document.createElementNS(SVG_NS, "g");
     cross.setAttribute("class", "rosary-bead bead-cross");
@@ -582,73 +665,90 @@
       data: {
         step: "1 · Sinal da Cruz e Credo",
         title: "Em nome do Pai",
-        text: "Em nome do Pai, do Filho e do Espírito Santo. Amém. Creio em Deus Pai todo-poderoso, criador do céu e da terra..."
+        text: "Em nome do Pai, do Filho e do Espírito Santo. Amém. Creio em Deus Pai todo-poderoso, criador do céu e da terra, e em Jesus Cristo, seu único Filho, nosso Senhor..."
       }
     });
-    el("line", { x1: 100, y1: 512, x2: 100, y2: 494, class: "chain-line" });
-    const tailY = [486, 460, 438, 416];
-    const ty = (i) => tailY[i] ?? 0;
-    bead(100, ty(0), 8, "pater", "Conta grande — Pai Nosso", {
+    label(195, crossCy, "left", ["SINAL DA CRUZ"]);
+    label(195, crossCy - 18, "right", ["CREIO EM", "DEUS PAI"]);
+    const paterCy = 465, ave1Cy = 490, ave2Cy = 511, ave3Cy = 532;
+    el("line", { x1: 195, y1: 388, x2: 195, y2: 457, class: "chain-line" });
+    el("line", { x1: 195, y1: 473, x2: 195, y2: 485, class: "chain-line" });
+    el("line", { x1: 195, y1: 495, x2: 195, y2: 506, class: "chain-line" });
+    el("line", { x1: 195, y1: 516, x2: 195, y2: 527, class: "chain-line" });
+    el("line", { x1: 195, y1: 537, x2: 195, y2: crossCy - 39, class: "chain-line" });
+    bead(195, paterCy, 8, "pater", "Conta grande — Pai Nosso", {
       step: "2 · Pai Nosso",
       title: "Pai Nosso",
       text: PATER_TEXT
     });
-    for (let i = 1;i <= 3; i++) {
-      el("line", { x1: 100, y1: ty(i - 1) - 6, x2: 100, y2: ty(i) + 6, class: "chain-line" });
-      const isLast = i === 3;
-      bead(100, ty(i), 5, "ave", `Ave Maria ${i} de 3`, {
-        step: isLast ? "5 · 3ª Ave Maria + Glória" : `${2 + i} · ${i}ª Ave Maria`,
+    label(195, paterCy, "right", ["PAI NOSSO"]);
+    [ave1Cy, ave2Cy, ave3Cy].forEach((y, i) => {
+      const isLast = i === 2;
+      bead(195, y, 5, "ave", `Ave Maria ${i + 1} de 3`, {
+        step: isLast ? "5 · 3ª Ave Maria + Glória" : `${2 + i + 1} · ${i + 1}ª Ave Maria`,
         title: isLast ? "Ave Maria + Glória" : "Ave Maria",
-        text: isLast ? `${AVE_TEXT} (${OPENING_AVE_INTENTIONS[i - 1]})
+        text: isLast ? `${AVE_TEXT} (${OPENING_AVE_INTENTIONS[i]})
 
-E, em seguida: ${GLORIA_TEXT}` : `${AVE_TEXT} (${OPENING_AVE_INTENTIONS[i - 1]})`
+E, em seguida: ${GLORIA_TEXT}` : `${AVE_TEXT} (${OPENING_AVE_INTENTIONS[i]})`
       });
-    }
-    el("line", { x1: 100, y1: ty(3) - 6, x2: 100, y2: 356, class: "chain-line" });
+    });
+    label(195, ave2Cy, "left", ["AVE MARIA"]);
+    const medalCy = 415;
+    el("line", { x1: 195, y1: 380, x2: 195, y2: medalCy - 27, class: "chain-line" });
     const medal = document.createElementNS(SVG_NS, "g");
     medal.setAttribute("class", "rosary-bead bead-medal");
     medal.setAttribute("tabindex", "0");
     medal.setAttribute("role", "button");
-    medal.setAttribute("aria-label", "Medalha de São Bento — intenção");
-    medal.style.transformOrigin = "100px 330px";
+    medal.setAttribute("aria-label", "Medalha de São Bento — Salve Rainha");
+    medal.style.transformOrigin = `195px ${medalCy}px`;
     medal.innerHTML = `
-    <circle class="medal-halo" cx="100" cy="330" r="27" fill="none"/>
-    <circle class="medal-ring" cx="100" cy="330" r="25" fill="url(#metalGrad)"/>
-    <circle class="medal-bg" cx="100" cy="330" r="21"/>
-    <path d="M100 316 v28 M86 330 h28" class="medal-cross"/>
-    <text x="100" y="323" text-anchor="middle" class="medal-text">C S P B</text>
-    <text x="100" y="342" text-anchor="middle" class="medal-text">S. BENTO</text>`;
+    <circle class="medal-halo" cx="195" cy="${medalCy}" r="27" fill="none"/>
+    <circle class="medal-ring" cx="195" cy="${medalCy}" r="25" fill="url(#metalGrad)"/>
+    <circle class="medal-bg" cx="195" cy="${medalCy}" r="21"/>
+    <path d="M195 ${medalCy - 14} v28 M181 ${medalCy} h28" class="medal-cross"/>
+    <text x="195" y="${medalCy - 7}" text-anchor="middle" class="medal-text">C S P B</text>
+    <text x="195" y="${medalCy + 12}" text-anchor="middle" class="medal-text">S. BENTO</text>`;
     group.appendChild(medal);
     sequence.push({
       el: medal,
       data: {
-        step: "6 · Medalha de São Bento",
-        title: "A intenção",
-        text: "Aqui eu guardo a intenção: que São Bento guarde a nossa casa e o nosso caminho, e que a gente continue se escolhendo todos os dias. Por você, Eduarda."
+        step: "6 · Medalha de São Bento — Salve Rainha",
+        title: "Salve Rainha",
+        text: "Salve, Rainha, Mãe de misericórdia, vida, doçura e esperança nossa, salve! A vós bradamos, os degredados filhos de Eva; a vós suspiramos, gemendo e chorando neste vale de lágrimas. Eia, pois, advogada nossa, esses vossos olhos misericordiosos a nós volvei. E, depois deste desterro, mostrai-nos Jesus, bendito fruto do vosso ventre, ó clemente, ó piedosa, ó doce sempre Virgem Maria. Amém. E o sinal da cruz, para seguir pela coroa.\n\nAqui eu guardo a intenção: que São Bento guarde a nossa casa e o nosso caminho, e que a gente continue se escolhendo todos os dias. Por você, Eduarda."
       }
     });
-    el("line", { x1: 100, y1: 305, x2: 100, y2: 290, class: "chain-line" });
+    label(195, medalCy - 12, "left", ["SALVE RAINHA"]);
+    label(195, medalCy + 12, "right", ["SINAL DA CRUZ"]);
+    el("line", { x1: 195, y1: medalCy - 27, x2: 195, y2: 380, class: "chain-line" });
     let n = 6;
+    const GAP_PATER_AVE = 8, GAP_AVE_AVE = 6, GAP_AVE_PATER = 9;
+    const unitsPerDecade = GAP_PATER_AVE + 9 * GAP_AVE_AVE + GAP_AVE_PATER;
+    const arcUnit = circumference / (unitsPerDecade * 5);
+    const SEAM_OFFSET_UNITS = GAP_PATER_AVE + 4 * GAP_AVE_AVE + GAP_AVE_AVE / 2;
+    let arcCursor = -SEAM_OFFSET_UNITS * arcUnit;
     for (let d = 0;d < 5; d++) {
-      const a0 = 6 + d * 72;
-      const p = pointAt(a0);
+      const invocation = SAO_BENTO_INVOCATIONS[d];
+      const p = pointAtArc(arcCursor);
       n++;
       bead(p.x, p.y, 8, "pater", `Pai Nosso — ${d + 1}ª dezena`, {
         step: `${n} · Pai Nosso — ${d + 1}ª dezena`,
-        title: `Pai Nosso · ${MYSTERIES[d]}`,
+        title: `Pai Nosso · ${invocation.title}`,
         text: PATER_TEXT
       });
+      label(p.x, p.y, p.x < cx ? "left" : "right", ["PAI NOSSO"]);
+      arcCursor += arcUnit * GAP_PATER_AVE;
       for (let k = 1;k <= 10; k++) {
-        const a = a0 + 6 + (k - 1) * 6.2;
-        const q = pointAt(a);
+        const q = pointAtArc(arcCursor);
         n++;
-        bead(q.x, q.y, 4.6, "ave", `${d + 1}ª dezena — Ave Maria ${k} de 10`, {
-          step: `${n} · ${d + 1}ª dezena — Ave Maria ${k}/10`,
-          title: k === 10 ? "Ave Maria + Glória" : "Ave Maria",
-          text: k === 10 ? `${AVE_TEXT}
-
-E, ao fechar a dezena: ${GLORIA_TEXT}` : AVE_TEXT
+        bead(q.x, q.y, 4.6, "ave", `${d + 1}ª dezena — ${invocation.title} ${k} de 10`, {
+          step: `${n} · ${d + 1}ª dezena — ${k}/10`,
+          title: invocation.title,
+          text: invocation.text
         });
+        if (k === 5) {
+          label(q.x, q.y, q.x < cx ? "left" : "right", invocation.labelLines);
+        }
+        arcCursor += arcUnit * (k < 10 ? GAP_AVE_AVE : GAP_AVE_PATER);
       }
     }
     const total = sequence.length;
@@ -685,11 +785,11 @@ E, ao fechar a dezena: ${GLORIA_TEXT}` : AVE_TEXT
         completed = true;
         setTimeout(() => {
           if (stepEl)
-            stepEl.textContent = "Terço completo \uD83D\uDC9B";
+            stepEl.textContent = "Terço de São Bento completo \uD83D\uDC9B";
           if (titleEl)
-            titleEl.textContent = "Salve Rainha";
+            titleEl.textContent = "Sinal da Cruz";
           if (textEl)
-            textEl.textContent = "Salve Rainha, Mãe de misericórdia, vida, doçura e esperança nossa, salve. E, no fim, um obrigado: por cada Ave Maria que eu rezei pensando em nós, Eduarda.";
+            textEl.textContent = "Em nome do Pai, do Filho e do Espírito Santo. Amém. E, no fim, um obrigado: por cada oração que eu fiz pensando em nós, Eduarda.";
           if (captionEl)
             captionEl.textContent = "você rezou o terço todo — toque numa conta pra rever qualquer passo.";
           const rect = rosary.getBoundingClientRect();
