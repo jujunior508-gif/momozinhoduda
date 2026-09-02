@@ -128,6 +128,17 @@
         <p class="rosary-intro">um momento de fé, cuidado e intenção por nós dois</p>
       </div>
       <p class="rosary-caption" id="rosaryCaption">Comece pelo crucifixo e siga conta por conta — na ordem certa, do jeito que se reza.</p>
+      <div class="rosary-order-guide" aria-label="Ordem do terço">
+        <span class="guide-item"><b>1</b> crucifixo</span>
+        <i aria-hidden="true">→</i>
+        <span class="guide-item"><b>2</b> Pai Nosso</span>
+        <i aria-hidden="true">→</i>
+        <span class="guide-item"><b>3</b> três Ave-Marias</span>
+        <i aria-hidden="true">→</i>
+        <span class="guide-item"><b>4</b> medalha</span>
+        <i aria-hidden="true">→</i>
+        <span class="guide-item"><b>5</b> cinco dezenas</span>
+      </div>
 
       <div class="rosary-stage">
         <div class="rosary" id="rosary">
@@ -232,10 +243,32 @@
       <div class="page-eyebrow">mini desafio</div>
       <h2 class="page-title">Sushi para nós</h2>
       <p class="rosary-caption">Monte o pedido clicando nos ingredientes certos. Cada combinação vale pontos.</p>
-      <div class="sushi-score" aria-live="polite">pontos: <strong id="sushiScore">0</strong></div>
+
+      <div class="sushi-dashboard">
+        <div class="sushi-score" aria-live="polite">
+          <span class="sushi-stat-label">pontuação</span>
+          <strong id="sushiScore">0</strong>
+        </div>
+        <div class="sushi-round" id="sushiRound">pedido 01</div>
+      </div>
+
+      <div class="sushi-assembly" aria-label="Progresso da montagem">
+        <div class="sushi-assembly-meta">
+          <span>montagem do sushi</span>
+          <strong><span id="sushiSelectedCount">0</span> / 3</strong>
+        </div>
+        <div class="sushi-selection-track"><span id="sushiSelectionFill"></span></div>
+      </div>
+
+      <div class="sushi-order" id="sushiOrder" aria-live="polite">
+        <span class="order-kicker">pedido da vez</span>
+        <strong id="sushiOrderName">Escolha sua combinação</strong>
+        <span id="sushiOrderHint">Selecione exatamente 3 ingredientes para servir.</span>
+      </div>
+
       <div class="sushi-board" id="sushiBoard" aria-label="Ingredientes de sushi"></div>
-      <div class="sushi-order" id="sushiOrder" aria-live="polite">Escolha 3 ingredientes para montar o sushi.</div>
       <div class="sushi-actions">
+        <button class="game-reset sushi-clear" id="sushiClear" type="button">limpar seleção</button>
         <button class="game-reset" id="sushiReset" type="button">novo pedido</button>
         <button class="game-reset sushi-submit" id="sushiSubmit" type="button">servir sushi</button>
       </div>
