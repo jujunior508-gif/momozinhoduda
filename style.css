@@ -1,931 +1,2261 @@
-(() => {
-  // ../../dev-server/src/site/legacy.ts
-  function initLegacySite() {
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const heartBurstLayer = document.getElementById("heartBurst");
-    function burstHearts(originX, originY, count = 16) {
-      if (!heartBurstLayer || prefersReducedMotion)
-        return;
-      for (let i = 0;i < count; i++) {
-        const heart = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-        heart.setAttribute("viewBox", "0 0 24 24");
-        heart.setAttribute("class", "heart-particle");
-        heart.innerHTML = '<path d="M12 21s-7.5-4.6-10-9.1C.6 8.6 2 5 5.4 4.2 8 3.6 10 5 12 7.5 14 5 16 3.6 18.6 4.2 22 5 23.4 8.6 22 11.9 19.5 16.4 12 21 12 21z"/>';
-        const size = 10 + Math.random() * 14;
-        const angle = Math.random() * Math.PI * 2;
-        const dist = 60 + Math.random() * 120;
-        heart.style.width = size + "px";
-        heart.style.height = size + "px";
-        heart.style.left = originX + "px";
-        heart.style.top = originY + "px";
-        heart.style.setProperty("--dx", Math.cos(angle) * dist + "px");
-        heart.style.setProperty("--dy", Math.sin(angle) * dist - 40 + "px");
-        heart.style.setProperty("--rot", Math.random() * 360 - 180 + "deg");
-        heart.style.animationDelay = Math.random() * 0.15 + "s";
-        heartBurstLayer.appendChild(heart);
-        setTimeout(() => heart.remove(), 1900);
-      }
-    }
-    const nameEl = document.querySelector("h1.name");
-    if (nameEl) {
-      const text = nameEl.textContent;
-      nameEl.textContent = "";
-      let letterIndex = 0;
-      text.split("").forEach((char) => {
-        const span = document.createElement("span");
-        span.className = "name-letter" + (char === " " ? " is-space" : "");
-        span.textContent = char === " " ? " " : char;
-        if (char !== " ") {
-          span.style.setProperty("--i", letterIndex);
-          letterIndex++;
-        }
-        nameEl.appendChild(span);
-      });
-    }
-    const glowEl = document.getElementById("glow");
-    const scrollFill = document.getElementById("scrollFill");
-    if (!prefersReducedMotion) {
-      let ticking = false;
-      window.addEventListener("scroll", () => {
-        if (!ticking) {
-          window.requestAnimationFrame(() => {
-            document.documentElement.style.setProperty("--scrollY", window.scrollY);
-            const max = document.documentElement.scrollHeight - window.innerHeight;
-            const pct = max > 0 ? Math.min(100, window.scrollY / max * 100) : 0;
-            if (scrollFill)
-              scrollFill.style.width = pct + "%";
-            ticking = false;
-          });
-          ticking = true;
-        }
-      }, { passive: true });
-    } else if (scrollFill) {
-      window.addEventListener("scroll", () => {
-        const max = document.documentElement.scrollHeight - window.innerHeight;
-        const pct = max > 0 ? Math.min(100, window.scrollY / max * 100) : 0;
-        scrollFill.style.width = pct + "%";
-      }, { passive: true });
-    }
-    const spotlightEl = document.getElementById("spotlight");
-    if (!prefersReducedMotion && window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
-      let lastSpark = 0;
-      window.addEventListener("pointermove", (e) => {
-        if (spotlightEl) {
-          spotlightEl.style.setProperty("--mx", e.clientX + "px");
-          spotlightEl.style.setProperty("--my", e.clientY + "px");
-          spotlightEl.classList.add("active");
-        }
-        const now = performance.now();
-        if (now - lastSpark < 70)
-          return;
-        lastSpark = now;
-        const spark = document.createElement("div");
-        spark.className = "cursor-spark";
-        spark.style.left = e.clientX + (Math.random() * 6 - 3) + "px";
-        spark.style.top = e.clientY + (Math.random() * 6 - 3) + "px";
-        document.body.appendChild(spark);
-        setTimeout(() => spark.remove(), 950);
-      }, { passive: true });
-      window.addEventListener("pointerleave", () => {
-        if (spotlightEl)
-          spotlightEl.classList.remove("active");
-      });
-    }
-    const titleEls = document.querySelectorAll(".page-title");
-    if (titleEls.length) {
-      const titleObserver = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("title-in");
-          }
-        });
-      }, { threshold: 0.5 });
-      titleEls.forEach((el) => titleObserver.observe(el));
-    }
-    const petalsContainer = document.getElementById("petals");
-    const petalCount = 14;
-    const petalSVG = `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-    <path d="M16 2C10 8 6 12 6 18a10 10 0 0020 0c0-6-4-10-10-16z" fill="#9c2b44" opacity="0.7"/>
-  </svg>`;
-    if (petalsContainer) {
-      for (let i = 0;i < petalCount; i++) {
-        const p = document.createElement("div");
-        p.className = "petal";
-        p.innerHTML = petalSVG;
-        const size = 10 + Math.random() * 16;
-        p.style.width = size + "px";
-        p.style.height = size + "px";
-        p.style.left = Math.random() * 100 + "vw";
-        p.style.animationDuration = 12 + Math.random() * 14 + "s";
-        p.style.animationDelay = Math.random() * -20 + "s";
-        petalsContainer.appendChild(p);
-      }
-    }
-    const envelope = document.getElementById("envelope");
-    const envelopeLink = document.getElementById("envelopeLink");
-    const letterSection = document.getElementById("letterSection");
-    const hint = document.getElementById("hint");
-    const seal = envelope ? envelope.querySelector(".seal") : null;
-    function openLetter(e) {
-      if (e)
-        e.preventDefault();
-      if (envelope.classList.contains("open")) {
-        letterSection.scrollIntoView({ behavior: "smooth" });
-        return;
-      }
-      hint.style.opacity = "0";
-      const proceed = () => {
-        envelope.classList.add("open");
-        letterSection.classList.add("visible");
-        setTimeout(() => {
-          letterSection.scrollIntoView({ behavior: "smooth" });
-        }, 950);
-      };
-      if (seal && !prefersReducedMotion) {
-        seal.classList.add("cracking");
-        setTimeout(proceed, 220);
-      } else {
-        proceed();
-      }
-    }
-    if (envelopeLink) {
-      envelopeLink.addEventListener("click", openLetter);
-    }
-    const memoryGrid = document.getElementById("memoryGrid");
-    const gameStatus = document.getElementById("gameStatus");
-    const gameReset = document.getElementById("gameReset");
-    if (memoryGrid) {
-      let shuffle = function(arr) {
-        for (let i = arr.length - 1;i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [arr[i], arr[j]] = [arr[j], arr[i]];
-        }
-        return arr;
-      }, buildGame = function() {
-        memoryGrid.innerHTML = "";
-        deck = shuffle([...symbols, ...symbols]);
-        firstCard = null;
-        lock = false;
-        moves = 0;
-        matches = 0;
-        gameStatus.textContent = "tentativas: 0";
-        deck.forEach((symbol) => {
-          const card = document.createElement("div");
-          card.className = "memory-card";
-          card.dataset.symbol = symbol;
-          card.innerHTML = `
-          <div class="memory-card-inner">
-            <div class="memory-card-face memory-card-back">♡</div>
-            <div class="memory-card-face memory-card-front">${symbol}</div>
-          </div>`;
-          card.addEventListener("click", () => onCardClick(card));
-          memoryGrid.appendChild(card);
-        });
-      }, onCardClick = function(card) {
-        if (lock || card.classList.contains("flipped") || card.classList.contains("matched"))
-          return;
-        card.classList.add("flipped");
-        if (!firstCard) {
-          firstCard = card;
-          return;
-        }
-        moves++;
-        gameStatus.textContent = `tentativas: ${moves}`;
-        if (firstCard.dataset.symbol === card.dataset.symbol) {
-          firstCard.classList.add("matched");
-          card.classList.add("matched");
-          firstCard = null;
-          matches++;
-          if (matches === symbols.length) {
-            setTimeout(() => {
-              gameStatus.textContent = "você achou todos os pares! \uD83D\uDC9B te amo.";
-              const rect = memoryGrid.getBoundingClientRect();
-              burstHearts(rect.left + rect.width / 2, rect.top + rect.height / 2, 18);
-            }, 400);
-          }
-        } else {
-          lock = true;
-          const wrongFirst = firstCard, wrongSecond = card;
-          setTimeout(() => {
-            wrongFirst.classList.remove("flipped");
-            wrongSecond.classList.remove("flipped");
-            firstCard = null;
-            lock = false;
-          }, 800);
-        }
-      };
-      const symbols = ["✉️", "\uD83D\uDCFF", "\uD83C\uDFB5", "\uD83D\uDC8D", "\uD83C\uDF39", "⭐"];
-      let deck = [], firstCard = null, lock = false, moves = 0, matches = 0;
-      gameReset.addEventListener("click", buildGame);
-      buildGame();
-    }
-    const tictacGrid = document.getElementById("tictacGrid");
-    const tictacStatus = document.getElementById("tictacStatus");
-    const tictacReset = document.getElementById("tictacReset");
-    if (tictacGrid) {
-      let buildBoard = function() {
-        board = Array(9).fill(null);
-        turn = 0;
-        finished = false;
-        tictacStatus.textContent = `vez do ${PLAYERS[turn]}`;
-        tictacGrid.innerHTML = "";
-        for (let i = 0;i < 9; i++) {
-          const cell = document.createElement("div");
-          cell.className = "tictac-cell";
-          cell.dataset.index = i;
-          cell.addEventListener("click", () => onCellClick(cell, i));
-          tictacGrid.appendChild(cell);
-        }
-      }, checkWinner = function() {
-        for (const line of WIN_LINES) {
-          const [a, b, c] = line;
-          if (board[a] && board[a] === board[b] && board[a] === board[c]) {
-            return line;
-          }
-        }
-        return null;
-      }, onCellClick = function(cell, i) {
-        if (finished || board[i])
-          return;
-        board[i] = PLAYERS[turn];
-        cell.textContent = PLAYERS[turn];
-        cell.classList.add("taken");
-        const winLine = checkWinner();
-        if (winLine) {
-          finished = true;
-          winLine.forEach((idx) => tictacGrid.children[idx].classList.add("win"));
-          tictacStatus.textContent = `${PLAYERS[turn]} venceu essa rodada!`;
-          const rect = tictacGrid.getBoundingClientRect();
-          burstHearts(rect.left + rect.width / 2, rect.top + rect.height / 2, 16);
-          return;
-        }
-        if (board.every((v) => v)) {
-          finished = true;
-          tictacStatus.textContent = "empate! bora desempatar com um beijo \uD83D\uDE18";
-          return;
-        }
-        turn = 1 - turn;
-        tictacStatus.textContent = `vez do ${PLAYERS[turn]}`;
-      };
-      const PLAYERS = ["❤️", "✦"];
-      const WIN_LINES = [
-        [0, 1, 2],
-        [3, 4, 5],
-        [6, 7, 8],
-        [0, 3, 6],
-        [1, 4, 7],
-        [2, 5, 8],
-        [0, 4, 8],
-        [2, 4, 6]
-      ];
-      let board = [], turn = 0, finished = false;
-      tictacReset.addEventListener("click", buildBoard);
-      buildBoard();
-    }
-    const bgMusic = document.getElementById("bgMusic");
-    const musicBtn = document.getElementById("musicPlayBtn");
-    const playIcon = document.getElementById("playIcon");
-    const pauseIcon = document.getElementById("pauseIcon");
-    const vinyl = document.getElementById("vinyl");
-    const tonearm = document.getElementById("tonearm");
-    if (bgMusic && musicBtn) {
-      bgMusic.volume = 0.6;
-      musicBtn.addEventListener("click", () => {
-        if (bgMusic.paused) {
-          bgMusic.play().catch((err) => {
-            console.log("Não foi possível tocar a música:", err);
-          });
-        } else {
-          bgMusic.pause();
-        }
-      });
-      bgMusic.addEventListener("play", () => {
-        playIcon.style.display = "none";
-        pauseIcon.style.display = "block";
-        musicBtn.classList.add("playing");
-        if (vinyl) {
-          vinyl.classList.add("spinning");
-        }
-        if (tonearm) {
-          tonearm.classList.add("playing");
-        }
-      });
-      bgMusic.addEventListener("pause", () => {
-        playIcon.style.display = "block";
-        pauseIcon.style.display = "none";
-        musicBtn.classList.remove("playing");
-        if (vinyl) {
-          vinyl.classList.remove("spinning");
-        }
-        if (tonearm) {
-          tonearm.classList.remove("playing");
-        }
-      });
-    }
-    const revealEls = document.querySelectorAll(".reveal");
-    if ("IntersectionObserver" in window) {
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("in");
-            observer.unobserve(entry.target);
-          }
-        });
-      }, { threshold: 0.3 });
-      revealEls.forEach((el) => observer.observe(el));
-    } else {
-      revealEls.forEach((el) => el.classList.add("in"));
-    }
-    const chapterNav = document.getElementById("chapterNav");
-    const dots = Array.from(document.querySelectorAll(".chapter-dot"));
-    const chapterSections = dots.map((d) => document.getElementById(d.dataset.target));
-    dots.forEach((dot) => {
-      dot.addEventListener("click", () => {
-        const target = document.getElementById(dot.dataset.target);
-        if (target) {
-          if (target.id === "letterSection") {
-            openLetter();
-          }
-          target.scrollIntoView({ behavior: "smooth" });
-        }
-      });
-    });
-    const setActiveChapter = (activeIndex) => {
-      dots.forEach((dot, index) => {
-        const isActive = index === activeIndex;
-        dot.classList.toggle("active", isActive);
-        if (isActive)
-          dot.setAttribute("aria-current", "true");
-        else
-          dot.removeAttribute("aria-current");
-      });
-    };
-    const updateActiveChapter = () => {
-      const marker = window.innerHeight * 0.42;
-      let activeIndex = -1;
-      let closestDistance = Infinity;
-      chapterSections.forEach((section, index) => {
-        if (!section)
-          return;
-        const rect = section.getBoundingClientRect();
-        if (rect.top <= marker && rect.bottom >= marker) {
-          activeIndex = index;
-          closestDistance = 0;
-          return;
-        }
-        const distance = Math.min(Math.abs(rect.top - marker), Math.abs(rect.bottom - marker));
-        if (distance < closestDistance) {
-          closestDistance = distance;
-          activeIndex = index;
-        }
-      });
-      if (activeIndex >= 0)
-        setActiveChapter(activeIndex);
-    };
-    let navTicking = false;
-    const requestChapterUpdate = () => {
-      if (navTicking)
-        return;
-      navTicking = true;
-      window.requestAnimationFrame(() => {
-        updateActiveChapter();
-        navTicking = false;
-      });
-    };
-    window.addEventListener("scroll", requestChapterUpdate, { passive: true });
-    window.addEventListener("resize", requestChapterUpdate, { passive: true });
-    requestChapterUpdate();
-    if (letterSection) {
-      const showNavObserver = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting || entry.boundingClientRect.top < window.innerHeight) {
-            chapterNav.classList.add("show");
-          }
-        });
-      }, { threshold: 0.1 });
-      showNavObserver.observe(letterSection);
-    }
-    const sushiBoard = document.getElementById("sushiBoard");
-    const sushiOrderEl = document.getElementById("sushiOrder");
-    const sushiOrderNameEl = document.getElementById("sushiOrderName");
-    const sushiOrderHintEl = document.getElementById("sushiOrderHint");
-    const sushiScoreEl = document.getElementById("sushiScore");
-    const sushiRoundEl = document.getElementById("sushiRound");
-    const sushiSelectedCountEl = document.getElementById("sushiSelectedCount");
-    const sushiSelectionFillEl = document.getElementById("sushiSelectionFill");
-    const sushiReset = document.getElementById("sushiReset");
-    const sushiClear = document.getElementById("sushiClear");
-    const sushiSubmit = document.getElementById("sushiSubmit");
-    if (sushiBoard && sushiOrderEl && sushiScoreEl) {
-      const ingredients = [
-        { id: "arroz", label: "Arroz", icon: "\uD83C\uDF5A" },
-        { id: "salmao", label: "Salmão", icon: "\uD83C\uDF63" },
-        { id: "abacate", label: "Abacate", icon: "\uD83E\uDD51" },
-        { id: "pepino", label: "Pepino", icon: "\uD83E\uDD52" },
-        { id: "camarao", label: "Camarão", icon: "\uD83C\uDF64" },
-        { id: "nori", label: "Nori", icon: "\uD83C\uDF3F" },
-        { id: "gergelim", label: "Gergelim", icon: "✨" },
-        { id: "molho", label: "Molho tarê", icon: "\uD83E\uDD62" },
-        { id: "wasabi", label: "Wasabi", icon: "\uD83D\uDFE2" },
-        { id: "manga", label: "Manga", icon: "\uD83E\uDD6D" },
-        { id: "creamcheese", label: "Cream cheese", icon: "\uD83E\uDDC0" },
-        { id: "kani", label: "Kani", icon: "\uD83E\uDD80" },
-        { id: "cogumelo", label: "Cogumelo", icon: "\uD83C\uDF44" },
-        { id: "limao", label: "Limão", icon: "\uD83C\uDF4B" },
-        { id: "tempura", label: "Tempurá", icon: "\uD83E\uDD5F" }
-      ];
-      const orders = [
-        { name: "Salmão especial", items: ["arroz", "salmao", "abacate"] },
-        { name: "Camarão crocante", items: ["arroz", "camarao", "nori"] },
-        { name: "Sushi clássico", items: ["arroz", "salmao", "nori"] },
-        { name: "Rolinho fresco", items: ["arroz", "pepino", "abacate"] },
-        { name: "Manga tropical", items: ["arroz", "manga", "abacate"] },
-        { name: "Salmão cremoso", items: ["arroz", "salmao", "creamcheese"] },
-        { name: "Kani refrescante", items: ["arroz", "kani", "pepino"] },
-        { name: "Veggie da casa", items: ["arroz", "cogumelo", "abacate"] },
-        { name: "Tempurá especial", items: ["arroz", "tempura", "nori"] },
-        { name: "Cítrico do casal", items: ["arroz", "limao", "salmao"] }
-      ];
-      let sushiScore = 0;
-      let round = 1;
-      let currentOrder;
-      let selected = new Set;
-      let servingTimer = null;
-      const shuffleIngredients = () => [...ingredients].sort(() => Math.random() - 0.5);
-      const updateSelectionUi = () => {
-        const selectedCount = selected.size;
-        if (sushiSelectedCountEl)
-          sushiSelectedCountEl.textContent = String(selectedCount);
-        if (sushiSelectionFillEl)
-          sushiSelectionFillEl.style.width = `${selectedCount / 3 * 100}%`;
-      };
-      const setOrderHint = (message, state = "") => {
-        sushiOrderEl.className = `sushi-order${state ? ` ${state}` : ""}`;
-        if (sushiOrderNameEl)
-          sushiOrderNameEl.textContent = currentOrder?.name || "Escolha sua combinação";
-        if (sushiOrderHintEl)
-          sushiOrderHintEl.textContent = message;
-      };
-      const renderSushi = () => {
-        selected = new Set;
-        currentOrder = orders[Math.floor(Math.random() * orders.length)];
-        if (sushiRoundEl)
-          sushiRoundEl.textContent = `pedido ${String(round).padStart(2, "0")}`;
-        setOrderHint("Selecione exatamente 3 ingredientes para servir.");
-        updateSelectionUi();
-        sushiBoard.innerHTML = "";
-        shuffleIngredients().forEach((item) => {
-          const button = document.createElement("button");
-          button.type = "button";
-          button.className = "sushi-ingredient";
-          button.dataset.id = item.id;
-          button.setAttribute("aria-pressed", "false");
-          button.innerHTML = `<span class="ingredient-icon" aria-hidden="true">${item.icon}</span><span class="ingredient-label">${item.label}</span><span class="ingredient-check" aria-hidden="true">✓</span>`;
-          button.addEventListener("click", () => {
-            if (selected.has(item.id)) {
-              selected.delete(item.id);
-              button.classList.remove("selected");
-              button.setAttribute("aria-pressed", "false");
-            } else if (selected.size < 3) {
-              selected.add(item.id);
-              button.classList.add("selected");
-              button.setAttribute("aria-pressed", "true");
-            } else {
-              setOrderHint("Você já escolheu 3 ingredientes. Sirva o pedido ou limpe a seleção.", "error");
-              return;
-            }
-            updateSelectionUi();
-            const message = selected.size === 3
-              ? "Tudo pronto. Confira a combinação e sirva o sushi."
-              : `${selected.size}/3 ingredientes escolhidos. Escolha mais ${3 - selected.size}.`;
-            setOrderHint(message);
-          });
-          sushiBoard.appendChild(button);
-        });
-      };
-      const clearSelection = () => {
-        selected.clear();
-        sushiBoard.querySelectorAll(".sushi-ingredient").forEach((button) => {
-          button.classList.remove("selected");
-          button.setAttribute("aria-pressed", "false");
-        });
-        updateSelectionUi();
-        setOrderHint("Selecione exatamente 3 ingredientes para servir.");
-      };
-      const submitSushi = () => {
-        if (selected.size !== 3) {
-          setOrderHint("Escolha 3 ingredientes antes de servir.", "error");
-          return;
-        }
-        const expected = new Set(currentOrder.items);
-        const isCorrect = selected.size === expected.size && [...selected].every((item) => expected.has(item));
-        if (isCorrect) {
-          sushiScore += 10;
-          sushiScoreEl.textContent = String(sushiScore);
-          setOrderHint(`Pedido perfeito! +10 pontos. ${currentOrder.name} ficou lindo para nós.`, "success");
-          sushiBoard.querySelectorAll(".sushi-ingredient.selected").forEach((button) => button.classList.add("correct"));
-          const rect = sushiBoard.getBoundingClientRect();
-          burstHearts(rect.left + rect.width / 2, rect.top + rect.height / 2, 12);
-          clearTimeout(servingTimer);
-          servingTimer = setTimeout(() => {
-            round++;
-            renderSushi();
-          }, 1250);
-        } else {
-          setOrderHint("Quase! Essa combinação precisa de outros ingredientes. Tente novamente.", "error");
-          sushiBoard.classList.remove("shake-board");
-          sushiBoard.offsetWidth;
-          sushiBoard.classList.add("shake-board");
-        }
-      };
-      sushiSubmit?.addEventListener("click", submitSushi);
-      sushiClear?.addEventListener("click", clearSelection);
-      sushiReset?.addEventListener("click", () => {
-        clearTimeout(servingTimer);
-        sushiScore = 0;
-        round = 1;
-        sushiScoreEl.textContent = "0";
-        renderSushi();
-      });
-      renderSushi();
-    }
+
+  :root{
+    --wine-deepest: #2a060f;
+    --wine-deep: #3f0a1a;
+    --wine: #6d1130;
+    --wine-light: #9c2b44;
+    --rose-gold: #d3a06c;
+    --gold-shine: #e9caa0;
+    --cream: #f7e9e1;
+    --ink: #2a060f;
   }
 
-  // ../../dev-server/src/site/rosary.ts
-  var SVG_NS = "http://www.w3.org/2000/svg";
-  var AVE_TEXT = "Ave Maria, cheia de graça, o Senhor é convosco, bendita sois vós entre as mulheres e bendito é o fruto do vosso ventre, Jesus. Santa Maria, Mãe de Deus, rogai por nós pecadores, agora e na hora da nossa morte. Amém.";
-  var PATER_TEXT = "Pai Nosso que estais no céu, santificado seja o Vosso nome, venha a nós o Vosso reino, seja feita a Vossa vontade, assim na terra como no céu. O pão nosso de cada dia nos dai hoje, perdoai as nossas ofensas, assim como nós perdoamos a quem nos tem ofendido, e não nos deixeis cair em tentação, mas livrai-nos do mal. Amém.";
-  var GLORIA_TEXT = "Glória ao Pai, ao Filho e ao Espírito Santo. Como era no princípio, agora e sempre. Amém.";
-  var OPENING_AVE_INTENTIONS = ["pela Fé", "pela Esperança", "pela Caridade"];
-  var SAO_BENTO_INVOCATIONS = [
-    {
-      title: "A Cruz Sagrada Seja Minha Luz",
-      text: "A cruz sagrada seja minha luz, não seja o dragão o meu guia.",
-      labelLines: ["A CRUZ SAGRADA", "SEJA MINHA LUZ", "(10x)"]
-    },
-    {
-      title: "Não Seja o Meu Dragão Meu Guia",
-      text: "Não seja o meu dragão meu guia.",
-      labelLines: ["NÃO SEJA O MEU", "DRAGÃO MEU", "GUIA (10x)"]
-    },
-    {
-      title: "Retira-te, Satanás!",
-      text: "Retira-te, Satanás! Nunca me aconselhes coisas vãs.",
-      labelLines: ["RETIRA-TE", "SATANÁS!", "(10x)"]
-    },
-    {
-      title: "Nunca Me Aconselhes Coisas Vãs",
-      text: "Nunca me aconselhes coisas vãs.",
-      labelLines: ["NUNCA ME", "ACONSELHES", "COISAS VÃS", "(10x)"]
-    },
-    {
-      title: "É Mal Que Tu Me Ofereces",
-      text: "É mal que tu me ofereces, bebe tu mesmo o teu veneno.",
-      labelLines: ["É MAL QUE TU ME", "OFERECES. BEBE", "TU MESMO O TEU", "VENENO (10x)"]
-    }
-  ];
-  function burst(x, y, count = 20) {
-    const layer = document.getElementById("heartBurst");
-    if (!layer || window.matchMedia("(prefers-reduced-motion: reduce)").matches)
-      return;
-    for (let i = 0;i < count; i++) {
-      const heart = document.createElementNS(SVG_NS, "svg");
-      heart.setAttribute("viewBox", "0 0 24 24");
-      heart.setAttribute("class", "heart-particle");
-      heart.innerHTML = '<path d="M12 21s-7.5-4.6-10-9.1C.6 8.6 2 5 5.4 4.2 8 3.6 10 5 12 7.5 14 5 16 3.6 18.6 4.2 22 5 23.4 8.6 22 11.9 19.5 16.4 12 21 12 21z"/>';
-      const size = 10 + Math.random() * 14;
-      const angle = Math.random() * Math.PI * 2;
-      const dist = 60 + Math.random() * 120;
-      const s = heart.style;
-      s.width = size + "px";
-      s.height = size + "px";
-      s.left = x + "px";
-      s.top = y + "px";
-      s.setProperty("--dx", Math.cos(angle) * dist + "px");
-      s.setProperty("--dy", Math.sin(angle) * dist - 40 + "px");
-      s.setProperty("--rot", Math.random() * 360 - 180 + "deg");
-      s.animationDelay = Math.random() * 0.15 + "s";
-      layer.appendChild(heart);
-      setTimeout(() => heart.remove(), 1900);
-    }
-  }
-  function initRosary() {
-    const rosary = document.getElementById("rosary");
-    const group = document.getElementById("rosaryGroup");
-    if (!rosary || !group)
-      return;
-    group.innerHTML = "";
-    const stepEl = document.getElementById("prayerStep");
-    const countEl = document.getElementById("prayerCount");
-    const titleEl = document.getElementById("prayerTitle");
-    const textEl = document.getElementById("prayerText");
-    const fillEl = document.getElementById("prayerProgressFill");
-    const cardEl = document.getElementById("prayerCard");
-    const captionEl = document.getElementById("rosaryCaption");
-    const nextBtn = document.getElementById("prayerNext");
-    const resetBtn = document.getElementById("prayerReset");
-    const sequence = [];
-    const el = (name, attrs) => {
-      const node = document.createElementNS(SVG_NS, name);
-      Object.entries(attrs).forEach(([k, v]) => node.setAttribute(k, String(v)));
-      group.appendChild(node);
-      return node;
-    };
-    const bead = (cx2, cy2, r, kind, label, data) => {
-      const g = document.createElementNS(SVG_NS, "g");
-      g.setAttribute("class", `rosary-bead bead-${kind}`);
-      g.setAttribute("tabindex", "0");
-      g.setAttribute("role", "button");
-      g.setAttribute("aria-label", label);
-      g.style.transformOrigin = `${cx2}px ${cy2}px`;
-      const halo = document.createElementNS(SVG_NS, "circle");
-      halo.setAttribute("class", "bead-halo");
-      halo.setAttribute("cx", String(cx2));
-      halo.setAttribute("cy", String(cy2));
-      halo.setAttribute("r", String(r + 3.5));
-      const c = document.createElementNS(SVG_NS, "circle");
-      c.setAttribute("class", "bead-core");
-      c.setAttribute("cx", String(cx2));
-      c.setAttribute("cy", String(cy2));
-      c.setAttribute("r", String(r));
-      c.setAttribute("fill", kind === "pater" ? "url(#paterGrad)" : "url(#beadGrad)");
-      const shine = document.createElementNS(SVG_NS, "circle");
-      shine.setAttribute("class", "bead-shine");
-      shine.setAttribute("cx", String(cx2 - r * 0.3));
-      shine.setAttribute("cy", String(cy2 - r * 0.35));
-      shine.setAttribute("r", String(Math.max(0.8, r * 0.28)));
-      g.append(halo, c, shine);
-      group.appendChild(g);
-      sequence.push({ el: g, data });
-      return g;
-    };
-    const label = (bx, by, side, lines) => {
-      const anchorX = side === "left" ? 108 : 282;
-      const textAnchor = side === "left" ? "end" : "start";
-      el("line", {
-        x1: anchorX,
-        y1: by,
-        x2: bx,
-        y2: by,
-        class: "label-line",
-        "marker-end": "url(#labelArrow)"
-      });
-      const circ = document.createElementNS(SVG_NS, "circle");
-      circ.setAttribute("cx", String(anchorX));
-      circ.setAttribute("cy", String(by));
-      circ.setAttribute("r", "1.6");
-      circ.setAttribute("class", "label-dot");
-      group.appendChild(circ);
-      const lineHeight = 9.6;
-      const startY = by - ((lines.length - 1) * lineHeight) / 2;
-      const t = document.createElementNS(SVG_NS, "text");
-      t.setAttribute("x", String(anchorX));
-      t.setAttribute("text-anchor", textAnchor);
-      t.setAttribute("class", "rosary-label");
-      lines.forEach((ln, i) => {
-        const isNote = /^\(.*\)$/.test(ln.trim());
-        const tspan = document.createElementNS(SVG_NS, "tspan");
-        tspan.setAttribute("x", String(anchorX));
-        tspan.setAttribute("y", String(startY + i * lineHeight));
-        if (isNote) tspan.setAttribute("class", "rosary-label-note");
-        tspan.textContent = ln;
-        t.appendChild(tspan);
-      });
-      group.appendChild(t);
-    };
-    const cx = 195, cy = 232, rx = 68, ry = 148;
-    const pointAt = (deg) => {
-      const rad = deg * Math.PI / 180;
-      return { x: cx + rx * Math.sin(rad), y: cy + ry * Math.cos(rad) };
-    };
-    const ELLIPSE_STEPS = 720;
-    const arcTable = [0];
-    let prevPt = pointAt(0);
-    for (let i = 1;i <= ELLIPSE_STEPS; i++) {
-      const deg = i / ELLIPSE_STEPS * 360;
-      const pt = pointAt(deg);
-      arcTable.push(arcTable[i - 1] + Math.hypot(pt.x - prevPt.x, pt.y - prevPt.y));
-      prevPt = pt;
-    }
-    const circumference = arcTable[ELLIPSE_STEPS];
-    const degAtArc = (targetArc) => {
-      const s = ((targetArc % circumference) + circumference) % circumference;
-      let lo = 0, hi = ELLIPSE_STEPS;
-      while (lo < hi) {
-        const mid = lo + hi >> 1;
-        if (arcTable[mid] < s)
-          lo = mid + 1;
-        else
-          hi = mid;
-      }
-      const i1 = lo, i0 = Math.max(0, lo - 1);
-      const s0 = arcTable[i0], s1 = arcTable[i1];
-      const d0 = i0 / ELLIPSE_STEPS * 360, d1 = i1 / ELLIPSE_STEPS * 360;
-      const frac = s1 > s0 ? (s - s0) / (s1 - s0) : 0;
-      return d0 + (d1 - d0) * frac;
-    };
-    const pointAtArc = (arcLen) => pointAt(degAtArc(arcLen));
-    el("ellipse", {
-      cx,
-      cy,
-      rx,
-      ry,
-      class: "chain-ring",
-      fill: "none"
-    });
-    el("ellipse", { cx, cy, rx: rx - 1, ry: ry - 1, class: "chain-ring-inner", fill: "none" });
-    const crossCy = 616;
-    const crossWrap = document.createElementNS(SVG_NS, "g");
-    crossWrap.setAttribute("transform", `translate(195,${crossCy})`);
-    group.appendChild(crossWrap);
-    const cross = document.createElementNS(SVG_NS, "g");
-    cross.setAttribute("class", "rosary-bead bead-cross");
-    cross.setAttribute("tabindex", "0");
-    cross.setAttribute("role", "button");
-    cross.setAttribute("aria-label", "Crucifixo — Sinal da Cruz e Credo");
-    cross.style.transformOrigin = "0px 0px";
-    cross.innerHTML = `
-    <rect class="cross-glow" x="-22" y="-38" width="44" height="76" rx="8" fill="none"/>
-    <rect x="-4.5" y="-34" width="9" height="68" rx="3" fill="url(#metalGrad)"/>
-    <rect x="-19" y="-16" width="38" height="9" rx="3" fill="url(#metalGrad)"/>
-    <circle cx="0" cy="-11.5" r="3.4" fill="#3f0a1a" opacity="0.55"/>`;
-    crossWrap.appendChild(cross);
-    sequence.push({
-      el: cross,
-      data: {
-        step: "1 · Sinal da Cruz e Credo",
-        title: "Em nome do Pai",
-        text: "Em nome do Pai, do Filho e do Espírito Santo. Amém. Creio em Deus Pai todo-poderoso, criador do céu e da terra, e em Jesus Cristo, seu único Filho, nosso Senhor..."
-      }
-    });
-    label(195, crossCy, "left", ["SINAL DA CRUZ"]);
-    label(195, crossCy - 18, "right", ["CREIO EM", "DEUS PAI"]);
-    // Corrente de abertura: do crucifixo para cima, a primeira conta é a grande,
-    // seguida pelas três Ave-Marias e, só então, pela medalha.
-    const paterCy = 550, ave1Cy = 525, ave2Cy = 503, ave3Cy = 481;
-    el("line", { x1: 195, y1: 442, x2: 195, y2: 476, class: "chain-line" });
-    el("line", { x1: 195, y1: 486, x2: 195, y2: 498, class: "chain-line" });
-    el("line", { x1: 195, y1: 508, x2: 195, y2: 520, class: "chain-line" });
-    el("line", { x1: 195, y1: 530, x2: 195, y2: 542, class: "chain-line" });
-    el("line", { x1: 195, y1: 558, x2: 195, y2: crossCy - 39, class: "chain-line" });
-    bead(195, paterCy, 8, "pater", "Conta grande — Pai Nosso", {
-      step: "2 · Pai Nosso",
-      title: "Pai Nosso",
-      text: PATER_TEXT
-    });
-    label(195, paterCy, "right", ["PAI NOSSO"]);
-    [ave1Cy, ave2Cy, ave3Cy].forEach((y, i) => {
-      const isLast = i === 2;
-      bead(195, y, 5, "ave", `Ave Maria ${i + 1} de 3`, {
-        step: isLast ? "5 · 3ª Ave Maria + Glória" : `${2 + i + 1} · ${i + 1}ª Ave Maria`,
-        title: isLast ? "Ave Maria + Glória" : "Ave Maria",
-        text: isLast ? `${AVE_TEXT} (${OPENING_AVE_INTENTIONS[i]})
+  *{ box-sizing: border-box; margin:0; padding:0; }
 
-E, em seguida: ${GLORIA_TEXT}` : `${AVE_TEXT} (${OPENING_AVE_INTENTIONS[i]})`
-      });
-    });
-    label(195, ave2Cy, "left", ["AVE MARIA"]);
-    const medalCy = 415;
-    el("line", { x1: 195, y1: 380, x2: 195, y2: medalCy - 27, class: "chain-line" });
-    const medal = document.createElementNS(SVG_NS, "g");
-    medal.setAttribute("class", "rosary-bead bead-medal");
-    medal.setAttribute("tabindex", "0");
-    medal.setAttribute("role", "button");
-    medal.setAttribute("aria-label", "Medalha de São Bento — Salve Rainha");
-    medal.style.transformOrigin = `195px ${medalCy}px`;
-    medal.innerHTML = `
-    <circle class="medal-halo" cx="195" cy="${medalCy}" r="27" fill="none"/>
-    <circle class="medal-ring" cx="195" cy="${medalCy}" r="25" fill="url(#metalGrad)"/>
-    <circle class="medal-bg" cx="195" cy="${medalCy}" r="21"/>
-    <path d="M195 ${medalCy - 14} v28 M181 ${medalCy} h28" class="medal-cross"/>
-    <text x="195" y="${medalCy - 7}" text-anchor="middle" class="medal-text">C S P B</text>
-    <text x="195" y="${medalCy + 12}" text-anchor="middle" class="medal-text">S. BENTO</text>`;
-    group.appendChild(medal);
-    sequence.push({
-      el: medal,
-      data: {
-        step: "6 · Medalha de São Bento — Salve Rainha",
-        title: "Salve Rainha",
-        text: "Salve, Rainha, Mãe de misericórdia, vida, doçura e esperança nossa, salve! A vós bradamos, os degredados filhos de Eva; a vós suspiramos, gemendo e chorando neste vale de lágrimas. Eia, pois, advogada nossa, esses vossos olhos misericordiosos a nós volvei. E, depois deste desterro, mostrai-nos Jesus, bendito fruto do vosso ventre, ó clemente, ó piedosa, ó doce sempre Virgem Maria. Amém. E o sinal da cruz, para seguir pela coroa.\n\nAqui eu guardo a intenção: que São Bento guarde a nossa casa e o nosso caminho, e que a gente continue se escolhendo todos os dias. Por você, Eduarda."
-      }
-    });
-    label(195, medalCy - 12, "left", ["SALVE RAINHA"]);
-    label(195, medalCy + 12, "right", ["SINAL DA CRUZ"]);
-    el("line", { x1: 195, y1: medalCy - 27, x2: 195, y2: 380, class: "chain-line" });
-    let n = 6;
-    const GAP_PATER_AVE = 8, GAP_AVE_AVE = 6, GAP_AVE_PATER = 9;
-    const unitsPerDecade = GAP_PATER_AVE + 9 * GAP_AVE_AVE + GAP_AVE_PATER;
-    const arcUnit = circumference / (unitsPerDecade * 5);
-    const SEAM_OFFSET_UNITS = GAP_PATER_AVE + 4 * GAP_AVE_AVE + GAP_AVE_AVE / 2;
-    let arcCursor = -SEAM_OFFSET_UNITS * arcUnit;
-    for (let d = 0;d < 5; d++) {
-      const invocation = SAO_BENTO_INVOCATIONS[d];
-      const p = pointAtArc(arcCursor);
-      n++;
-      bead(p.x, p.y, 8, "pater", `Pai Nosso — ${d + 1}ª dezena`, {
-        step: `${n} · Pai Nosso — ${d + 1}ª dezena`,
-        title: `Pai Nosso · ${invocation.title}`,
-        text: PATER_TEXT
-      });
-      label(p.x, p.y, p.x < cx ? "left" : "right", ["PAI NOSSO"]);
-      arcCursor += arcUnit * GAP_PATER_AVE;
-      for (let k = 1;k <= 10; k++) {
-        const q = pointAtArc(arcCursor);
-        n++;
-        bead(q.x, q.y, 4.6, "ave", `${d + 1}ª dezena — ${invocation.title} ${k} de 10`, {
-          step: `${n} · ${d + 1}ª dezena — ${k}/10`,
-          title: invocation.title,
-          text: invocation.text
-        });
-        if (k === 5) {
-          label(q.x, q.y, q.x < cx ? "left" : "right", invocation.labelLines);
-        }
-        arcCursor += arcUnit * (k < 10 ? GAP_AVE_AVE : GAP_AVE_PATER);
-      }
-    }
-    const total = sequence.length;
-    let current = -1;
-    let completed = false;
-    const paint = () => {
-      sequence.forEach((s, i) => {
-        s.el.classList.toggle("prayed", i < current);
-        s.el.classList.toggle("current", i === current);
-      });
-    };
-    const show = (index) => {
-      if (index < 0 || index >= total)
-        return;
-      current = index;
-      paint();
-      const { data } = sequence[index];
-      if (cardEl) {
-        cardEl.classList.remove("pulse");
-        cardEl.offsetWidth;
-        cardEl.classList.add("pulse");
-      }
-      if (stepEl)
-        stepEl.textContent = data.step;
-      if (titleEl)
-        titleEl.textContent = data.title;
-      if (textEl)
-        textEl.textContent = data.text;
-      if (countEl)
-        countEl.textContent = `${index + 1} / ${total}`;
-      if (fillEl)
-        fillEl.style.width = (index + 1) / total * 100 + "%";
-      if (index === total - 1 && !completed) {
-        completed = true;
-        setTimeout(() => {
-          if (stepEl)
-            stepEl.textContent = "Terço de São Bento completo \uD83D\uDC9B";
-          if (titleEl)
-            titleEl.textContent = "Sinal da Cruz";
-          if (textEl)
-            textEl.textContent = "Em nome do Pai, do Filho e do Espírito Santo. Amém. E, no fim, um obrigado: por cada oração que eu fiz pensando em nós, Eduarda.";
-          if (captionEl)
-            captionEl.textContent = "você rezou o terço todo — toque numa conta pra rever qualquer passo.";
-          const rect = rosary.getBoundingClientRect();
-          burst(rect.left + rect.width / 2, rect.top + rect.height / 2, 24);
-        }, 1200);
-      }
-    };
-    sequence.forEach((s, i) => {
-      s.el.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        show(i);
-      });
-      s.el.addEventListener("keydown", (e) => {
-        const ke = e;
-        if (ke.key === "Enter" || ke.key === " ") {
-          e.preventDefault();
-          show(i);
-        }
-      });
-    });
-    nextBtn?.addEventListener("click", () => show(Math.min(current + 1, total - 1)));
-    resetBtn?.addEventListener("click", () => {
-      current = -1;
-      completed = false;
-      paint();
-      if (stepEl)
-        stepEl.textContent = "toque no crucifixo para começar";
-      if (countEl)
-        countEl.textContent = `0 / ${total}`;
-      if (titleEl)
-        titleEl.textContent = "Terço por nós dois";
-      if (textEl)
-        textEl.textContent = "Cada conta tem a sua oração. Toque no crucifixo e siga comigo — uma intenção por nós, Eduarda.";
-      if (fillEl)
-        fillEl.style.width = "0%";
-      if (captionEl)
-        captionEl.textContent = "Comece pelo crucifixo e siga conta por conta — na ordem certa, do jeito que se reza.";
-    });
-    if (countEl)
-      countEl.textContent = `0 / ${total}`;
+  html{ scroll-behavior: smooth; }
+
+  body{
+    background: radial-gradient(ellipse at top, var(--wine-deep) 0%, var(--wine-deepest) 60%, #1a0308 100%);
+    color: var(--cream);
+    font-family: 'EB Garamond', serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
   }
 
-  // entry.ts
-  initLegacySite();
-  initRosary();
-})();
+  .glow{
+    position: fixed;
+    inset: -10vh -10vw;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(circle at 30% 20%, rgba(233, 202, 160, 0.10), transparent 45%),
+      radial-gradient(circle at 75% 70%, rgba(156, 43, 68, 0.18), transparent 50%);
+    animation: breathe 8s ease-in-out infinite alternate;
+    transform: translateY(calc(var(--scrollY, 0) * -0.04px));
+    will-change: transform;
+  }
+
+  @keyframes breathe{
+    from{ opacity: 0.7; }
+    to{ opacity: 1; }
+  }
+
+  /* soft light that follows the cursor — desktop only, very subtle */
+  .spotlight{
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: radial-gradient(circle 420px at var(--mx, 50%) var(--my, 30%), rgba(233, 202, 160, 0.07), transparent 70%);
+    opacity: 0;
+    transition: opacity 0.6s ease;
+  }
+  .spotlight.active{ opacity: 1; }
+
+  /* thin gold reading-progress line pinned to the top of the viewport */
+  .scroll-progress{
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    z-index: 20;
+    background: rgba(212, 160, 108, 0.08);
+  }
+  .scroll-progress-fill{
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--rose-gold), var(--gold-shine));
+    box-shadow: 0 0 8px rgba(233, 202, 160, 0.5);
+    transition: width 0.1s linear;
+  }
+
+  /* burst of little hearts for celebratory moments (games won, rosary finished) */
+  .heart-burst{
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    pointer-events: none;
+  }
+  .heart-particle{
+    position: absolute;
+    fill: var(--rose-gold);
+    animation: heartPop 1.6s cubic-bezier(.2,.7,.3,1) forwards;
+  }
+  @keyframes heartPop{
+    0%{ transform: translate(-50%,-50%) scale(0) rotate(0deg); opacity: 1; }
+    70%{ opacity: 1; }
+    100%{ transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1) rotate(var(--rot)); opacity: 0; }
+  }
+
+  /* subtle paper-grain texture over the whole page, gives the dark wine tone depth */
+  .grain{
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.05;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .reveal{
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 1s ease, transform 1s ease;
+  }
+  .reveal.in{
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .reasons-section, .promise-section{
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8vh 6vw;
+  }
+
+  .reasons-card{
+    max-width: 600px;
+    text-align: center;
+  }
+
+  .reasons-card .letter-eyebrow{ justify-content: center; display:block; }
+
+  .reasons-list{
+    list-style: none;
+    margin-top: 2rem;
+    text-align: left;
+    display: inline-block;
+  }
+
+  .reasons-list li{
+    font-size: clamp(1.05rem, 1.7vw, 1.3rem);
+    line-height: 1.9;
+    color: rgba(247, 233, 225, 0.9);
+    padding-left: 1.8rem;
+    position: relative;
+    margin-bottom: 0.9rem;
+  }
+
+  .reasons-list li::before{
+    content: '❦';
+    position: absolute;
+    left: 0;
+    color: var(--rose-gold);
+    font-size: 1rem;
+    top: 0.15rem;
+  }
+
+  .promise-card{
+    max-width: 560px;
+    text-align: center;
+  }
+
+  .promise-heart{
+    width: 46px;
+    height: 46px;
+    margin: 0 auto 1.8rem;
+    fill: var(--rose-gold);
+    animation: heartbeat 2.2s ease-in-out infinite;
+  }
+
+  @keyframes heartbeat{
+    0%, 100%{ transform: scale(1); }
+    15%{ transform: scale(1.18); }
+    30%{ transform: scale(1); }
+    45%{ transform: scale(1.1); }
+    60%{ transform: scale(1); }
+  }
+
+  .promise-text{
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: clamp(1.5rem, 3.2vw, 2.1rem);
+    line-height: 1.5;
+    color: var(--gold-shine);
+  }
+
+  .promise-sign{
+    margin-top: 2.2rem;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    color: var(--rose-gold);
+    font-size: 1.1rem;
+  }
+
+  /* floating petals */
+  .petals{
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    overflow: hidden;
+  }
+  .petal{
+    position: absolute;
+    top: -5%;
+    opacity: 0.55;
+    animation: fall linear infinite;
+  }
+  .petal svg{ width: 100%; height: 100%; display:block; }
+
+  @keyframes fall{
+    0%{ transform: translateY(-10vh) translateX(0) rotate(0deg); }
+    50%{ transform: translateY(50vh) translateX(20px) rotate(180deg); }
+    100%{ transform: translateY(110vh) translateX(-10px) rotate(360deg); }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .petal{ animation: none; opacity: 0.2; }
+    *{ animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+
+  main{
+    position: relative;
+    z-index: 2;
+  }
+
+  /* HERO / ENVELOPE SCENE */
+  .scene{
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 6vh 6vw;
+    text-align: center;
+  }
+
+  .eyebrow{
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    font-size: clamp(0.7rem, 1.4vw, 0.85rem);
+    color: var(--rose-gold);
+    margin-bottom: 1.4rem;
+    opacity: 0;
+    animation: riseIn 1.2s ease forwards 0.2s;
+  }
+
+  h1.name{
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-weight: 600;
+    font-size: clamp(2.8rem, 9vw, 6rem);
+    line-height: 1;
+    background: linear-gradient(100deg,
+      var(--gold-shine) 30%, #fff6e6 45%, var(--gold-shine) 60%);
+    background-size: 240% 100%;
+    background-position: 0% 50%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 40px rgba(233, 202, 160, 0.25));
+    animation: nameShimmer 7s ease-in-out 2.4s infinite;
+  }
+
+  .name-letter{
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(0.4em) rotate(3deg);
+    animation: letterRise 0.8s cubic-bezier(.2,.8,.2,1) forwards;
+    animation-delay: calc(0.5s + (var(--i, 0) * 0.045s));
+  }
+  .name-letter.is-space{ width: 0.3em; }
+
+  @keyframes letterRise{
+    from{ opacity: 0; transform: translateY(0.5em) rotate(4deg); }
+    to{ opacity: 1; transform: translateY(0) rotate(0deg); }
+  }
+
+  @keyframes nameShimmer{
+    0%{ background-position: 0% 50%; }
+    50%{ background-position: 100% 50%; }
+    100%{ background-position: 0% 50%; }
+  }
+
+  .sub{
+    margin-top: 1.6rem;
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    color: var(--cream);
+    opacity: 0;
+    animation: riseIn 1.4s ease forwards 0.9s;
+    max-width: 32ch;
+  }
+
+  @keyframes riseIn{
+    from{ opacity: 0; transform: translateY(18px); }
+    to{ opacity: 1; transform: translateY(0); }
+  }
+
+  /* envelope */
+  .envelope-wrap{
+    margin-top: 4.5rem;
+    opacity: 0;
+    animation: riseIn 1.4s ease forwards 1.3s;
+  }
+
+  .envelope{
+    position: relative;
+    width: min(280px, 60vw);
+    aspect-ratio: 3 / 2;
+    cursor: pointer;
+    filter: drop-shadow(0 20px 40px rgba(0,0,0,0.5));
+  }
+
+  .envelope-body{
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(160deg, #fbeee2, #f0d9c5);
+    border-radius: 6px;
+  }
+
+  .envelope-flap{
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 55%;
+    background: linear-gradient(160deg, #f3ddc9, #e6c3a6);
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+    transform-origin: top center;
+    transition: transform 0.9s cubic-bezier(.6,0,.4,1);
+    border-radius: 6px 6px 0 0;
+    z-index: 3;
+  }
+
+  .envelope.open .envelope-flap{
+    transform: rotateX(180deg);
+  }
+
+  .seal{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 58px;
+    height: 58px;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle at 35% 30%, var(--wine-light), var(--wine) 60%, var(--wine-deep) 100%);
+    border-radius: 50%;
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.5rem;
+    color: var(--gold-shine);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.45), inset 0 2px 4px rgba(255,255,255,0.15);
+    transition: transform 0.6s ease, opacity 0.6s ease;
+    animation: sealPulse 2.4s ease-in-out infinite;
+  }
+
+  @keyframes sealPulse{
+    0%, 100%{ transform: translate(-50%, -50%) scale(1); }
+    50%{ transform: translate(-50%, -50%) scale(1.06); }
+  }
+
+  .envelope.open .seal{
+    animation: none;
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+  }
+
+  .seal.cracking{
+    animation: sealCrack 0.28s ease-in-out;
+  }
+
+  @keyframes sealCrack{
+    0%{ transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+    30%{ transform: translate(-50%, -50%) scale(1.12) rotate(-4deg); }
+    60%{ transform: translate(-50%, -50%) scale(0.94) rotate(3deg); }
+    100%{ transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+  }
+
+  .envelope-link{
+    -webkit-tap-highlight-color: transparent;
+  }
+  .envelope{
+    touch-action: manipulation;
+  }
+
+  .letter-peek{
+    position: absolute;
+    left: 6%; right: 6%;
+    bottom: 8%;
+    height: 60%;
+    background: #fffaf3;
+    border-radius: 4px;
+    z-index: 2;
+    transition: transform 0.9s cubic-bezier(.2,.8,.3,1) 0.25s;
+    transform: translateY(0);
+  }
+
+  .envelope.open .letter-peek{
+    transform: translateY(-130%);
+  }
+
+  .hint{
+    margin-top: 1.6rem;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 0.95rem;
+    color: rgba(247, 233, 225, 0.65);
+    letter-spacing: 0.05em;
+  }
+
+  .envelope.open ~ .hint, .scene.open .hint{
+    opacity: 0;
+  }
+
+  /* LETTER SECTION */
+  .letter-section{
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8vh 6vw;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 1.2s ease, transform 1.2s ease;
+    pointer-events: none;
+    scroll-margin-top: 0;
+  }
+
+  .letter-section.visible,
+  .letter-section:target{
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .envelope-link{
+    display: block;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .fallback-link{
+    display: inline-block;
+    margin-top: 0.8rem;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 0.85rem;
+    color: rgba(212, 160, 108, 0.55);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
+  .letter-card{
+    max-width: 640px;
+    background: linear-gradient(180deg, rgba(247, 233, 225, 0.06), rgba(247, 233, 225, 0.02));
+    border: 1px solid rgba(212, 160, 108, 0.35);
+    border-radius: 10px;
+    padding: clamp(2rem, 6vw, 4.5rem);
+    position: relative;
+    backdrop-filter: blur(2px);
+  }
+
+  .letter-card::before{
+    content: '';
+    position: absolute;
+    top: -1px; left: -1px; right: -1px; bottom: -1px;
+    border-radius: 10px;
+    padding: 1px;
+    background: linear-gradient(135deg, var(--gold-shine), transparent 40%, transparent 60%, var(--gold-shine));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    opacity: 0.4;
+  }
+
+  .letter-eyebrow{
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    color: var(--rose-gold);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    margin-bottom: 1.4rem;
+  }
+
+  .big-words{
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-weight: 600;
+    font-size: clamp(2.6rem, 7vw, 4.4rem);
+    line-height: 1.08;
+    color: var(--gold-shine);
+    margin-bottom: 2rem;
+  }
+
+  .letter-body p{
+    font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+    line-height: 1.85;
+    color: rgba(247, 233, 225, 0.92);
+    margin-bottom: 1.3rem;
+  }
+
+  .signature{
+    margin-top: 2.5rem;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 1.4rem;
+    color: var(--rose-gold);
+  }
+
+  .heart-divider{
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin: 2.2rem 0;
+    opacity: 0.7;
+  }
+  .heart-divider::before, .heart-divider::after{
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--rose-gold), transparent);
+  }
+  .heart-divider svg{ width: 16px; height: 16px; fill: var(--rose-gold); flex-shrink: 0; }
+
+  footer{
+    text-align: center;
+    padding: 4vh 6vw 6vh;
+    color: rgba(247, 233, 225, 0.4);
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 0.85rem;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* NAV between chapters */
+  .chapter-nav{
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    z-index: 10;
+    background: rgba(42, 6, 15, 0.55);
+    border: 1px solid rgba(212, 160, 108, 0.3);
+    padding: 8px 10px;
+    border-radius: 999px;
+    backdrop-filter: blur(6px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+  }
+  .chapter-nav.show{ opacity: 1; pointer-events: auto; }
+
+  .chapter-dot{
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: rgba(247, 233, 225, 0.25);
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    position: relative;
+    transition: background 0.3s ease, transform 0.3s ease;
+  }
+  .chapter-dot.active{
+    background: var(--rose-gold);
+    transform: scale(1.3);
+  }
+  .chapter-dot.active::after{
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    border: 1px solid rgba(211, 160, 108, 0.55);
+    animation: dotPulse 1.8s ease-out infinite;
+  }
+
+  @keyframes dotPulse{
+    0%{ transform: scale(0.6); opacity: 0.8; }
+    100%{ transform: scale(1.7); opacity: 0; }
+  }
+
+  /* cursor sparkle trail — desktop only, subtle romantic touch */
+  .cursor-spark{
+    position: fixed;
+    z-index: 50;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--gold-shine);
+    box-shadow: 0 0 6px 1px rgba(233, 202, 160, 0.7);
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    animation: sparkFade 0.9s ease-out forwards;
+  }
+
+  @keyframes sparkFade{
+    0%{ opacity: 0.85; transform: translate(-50%, -50%) scale(1); }
+    100%{ opacity: 0; transform: translate(-50%, -50%) scale(0.2) translateY(14px); }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    h1.name{ animation: none; background-position: 0% 50%; }
+    .name-letter{ opacity: 1; transform: none; animation: none; }
+    .vinyl.spinning{ animation: none; }
+    .cursor-spark{ display: none; }
+    .chapter-dot.active::after{ animation: none; opacity: 0.4; }
+    .glow{ transform: none; }
+    .spotlight{ display: none; }
+    .rosary-bead.current{ animation: none; }
+    .heart-particle{ animation: none; display: none; }
+  }
+
+  /* generic page/section shared with letter-section styles */
+  .page{
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8vh 6vw;
+  }
+
+  .page-eyebrow{
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    color: var(--rose-gold);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    margin-bottom: 1.2rem;
+    text-align: center;
+  }
+
+  .page-title{
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-weight: 600;
+    font-size: clamp(2.2rem, 6vw, 3.6rem);
+    color: var(--gold-shine);
+    text-align: center;
+    margin-bottom: 3rem;
+    line-height: 1.1;
+    position: relative;
+    padding-bottom: 1.1rem;
+  }
+
+  .page-title::after{
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--rose-gold), transparent);
+    transform: translateX(-50%);
+    transition: width 1.1s cubic-bezier(.2,.7,.2,1);
+  }
+
+  .page-title.title-in::after{
+    width: 120px;
+  }
+
+  /* NOSSA HISTORIA - timeline */
+  .timeline{
+    max-width: 640px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 2.2rem;
+  }
+  .timeline-item{
+    position: relative;
+    padding-left: 2.4rem;
+    border-left: 1px solid rgba(212, 160, 108, 0.35);
+  }
+  .timeline-item::before{
+    content: '';
+    position: absolute;
+    left: -6px;
+    top: 4px;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: var(--rose-gold);
+    box-shadow: 0 0 0 4px rgba(211, 160, 108, 0.15);
+  }
+  .timeline-item h3{
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.3rem;
+    color: var(--gold-shine);
+    margin-bottom: 0.4rem;
+  }
+  .timeline-item p{
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: rgba(247, 233, 225, 0.85);
+  }
+
+  /* MOTIVOS - reasons list */
+  .reasons{
+    max-width: 620px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 1.4rem;
+  }
+  .reason{
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: rgba(247, 233, 225, 0.9);
+  }
+  .reason svg{
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    fill: var(--rose-gold);
+    margin-top: 6px;
+  }
+
+  /* MOMENTOS - frames grid */
+  .moments-grid{
+    max-width: 720px;
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1.4rem;
+  }
+  .moment-frame{
+    aspect-ratio: 4/5;
+    border: 1px dashed rgba(212, 160, 108, 0.45);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 1rem;
+    background: rgba(247, 233, 225, 0.03);
+  }
+  .moment-frame span{
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 0.95rem;
+    color: rgba(247, 233, 225, 0.55);
+  }
+
+  /* MUSICA */
+  .music-card{
+    max-width: 560px;
+    width: 100%;
+    text-align: center;
+  }
+  .player{
+    position: relative;
+    width: 140px;
+    margin: 0 auto 2rem;
+  }
+
+  .vinyl{
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: repeating-radial-gradient(circle at center, var(--wine-deepest) 0 3px, var(--wine) 3px 6px);
+    border: 1px solid rgba(212, 160, 108, 0.4);
+    position: relative;
+    box-shadow: 0 14px 30px rgba(0,0,0,0.4);
+    transition: box-shadow 0.4s ease;
+  }
+  .vinyl::after{
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 20px; height: 20px;
+    background: var(--gold-shine);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+  }
+  .vinyl.spinning{
+    animation: spin 5s linear infinite;
+    box-shadow: 0 18px 36px rgba(0,0,0,0.5), 0 0 26px rgba(211,160,108,0.25);
+  }
+  @keyframes spin{ from{ transform: rotate(0deg);} to{ transform: rotate(360deg);} }
+
+  .tonearm{
+    position: absolute;
+    top: -18px;
+    right: -22px;
+    width: 62px;
+    height: 62px;
+    pointer-events: none;
+    transform: rotate(-32deg);
+    transform-origin: 88% 14%;
+    transition: transform 0.5s cubic-bezier(.3,.6,.3,1.2);
+  }
+  .tonearm::before{
+    content: '';
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--rose-gold);
+    box-shadow: 0 0 0 3px rgba(211,160,108,0.25);
+  }
+  .tonearm::after{
+    content: '';
+    position: absolute;
+    top: 9px;
+    right: 10px;
+    width: 3px;
+    height: 48px;
+    border-radius: 3px;
+    background: linear-gradient(180deg, var(--rose-gold), var(--gold-shine));
+    transform-origin: top center;
+    transform: rotate(28deg);
+  }
+  .tonearm.playing{
+    transform: rotate(-6deg);
+  }
+  .music-card p{
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: rgba(247, 233, 225, 0.88);
+    margin-bottom: 0.6rem;
+  }
+
+  /* botão de play/pause da música */
+  .music-play-btn{
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: none;
+    background: var(--rose-gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    margin: 0 auto 1.6rem;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.35), inset 0 2px 4px rgba(255,255,255,0.2);
+    transition: transform 0.2s ease, background 0.3s ease;
+  }
+  .music-play-btn:hover{
+    transform: scale(1.08);
+  }
+  .music-play-btn svg{
+    width: 22px;
+    height: 22px;
+    fill: var(--wine-deepest);
+  }
+  .music-play-btn #playIcon{
+    margin-left: 3px; /* optical centering for the triangle */
+  }
+  .music-play-btn.playing{
+    background: var(--gold-shine);
+    animation: sealPulse 2.2s ease-in-out infinite;
+  }
+
+  /* TERÇO - Nossa Senhora das Graças & São Bento */
+  .rosary-section{
+    min-height: 100vh;
+  }
+  .rosary-header{
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+  .rosary-caption{
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 0.95rem;
+    color: rgba(247, 233, 225, 0.6);
+    margin: -1.6rem auto 1rem;
+    max-width: 34ch;
+  }
+  .rosary-stage{
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding-top: 1rem;
+  }
+  .rosary{
+    width: min(210px, 56vw);
+    filter: drop-shadow(0 12px 24px rgba(0,0,0,0.45));
+  }
+  .rosary-group{
+    transform: none;
+  }
+  .bead{ fill: var(--rose-gold); }
+  .bead-alt{ fill: var(--gold-shine); }
+  .chain-line{ stroke: rgba(212,160,108,0.55); stroke-width: 1.5; fill: none; }
+  .medal-bg{ fill: var(--wine); stroke: var(--gold-shine); stroke-width: 1.5; }
+  .medal-mark{ fill: var(--gold-shine); }
+  .medal-mark text, .medal-text{
+    font-family: 'Cormorant Garamond', serif;
+    fill: var(--gold-shine);
+  }
+
+  /* prayer card beneath the rosary — shows the current step's text */
+  .prayer-card{
+    max-width: 460px;
+    margin: 2.4rem auto 0;
+    text-align: center;
+    background: linear-gradient(180deg, rgba(247, 233, 225, 0.06), rgba(247, 233, 225, 0.02));
+    border: 1px solid rgba(212, 160, 108, 0.35);
+    border-radius: 10px;
+    padding: 1.8rem clamp(1.4rem, 5vw, 2.4rem) 2rem;
+  }
+  .prayer-progress{
+    height: 3px;
+    width: 100%;
+    background: rgba(212, 160, 108, 0.15);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 1.2rem;
+  }
+  .prayer-progress-fill{
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--rose-gold), var(--gold-shine));
+    transition: width 0.5s cubic-bezier(.3,.7,.3,1);
+  }
+  .prayer-step{
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    color: var(--rose-gold);
+    margin-bottom: 0.8rem;
+  }
+  .prayer-title{
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-weight: 600;
+    font-size: clamp(1.3rem, 3vw, 1.6rem);
+    color: var(--gold-shine);
+    margin-bottom: 0.9rem;
+    transition: opacity 0.4s ease;
+  }
+  .prayer-text{
+    font-size: 1.02rem;
+    line-height: 1.85;
+    color: rgba(247, 233, 225, 0.9);
+    min-height: 3.6em;
+    transition: opacity 0.4s ease;
+  }
+  .prayer-card.pulse .prayer-title,
+  .prayer-card.pulse .prayer-text{
+    animation: prayerFade 0.5s ease;
+  }
+  @keyframes prayerFade{
+    0%{ opacity: 0; transform: translateY(6px); }
+    100%{ opacity: 1; transform: translateY(0); }
+  }
+  .prayer-card #prayerReset{ margin-top: 1.6rem; }
+  .forever-card{
+    max-width: 560px;
+    text-align: center;
+  }
+  .forever-card p{
+    font-size: clamp(1.1rem, 2vw, 1.3rem);
+    line-height: 1.9;
+    color: rgba(247, 233, 225, 0.92);
+    margin-bottom: 1.6rem;
+  }
+  .forever-heart{
+    width: 46px;
+    height: 46px;
+    fill: var(--rose-gold);
+    margin: 0 auto 2rem;
+    display: block;
+    animation: sealPulse 2.2s ease-in-out infinite;
+  }
+
+  /* JOGO DA MEMÓRIA */
+  .game-wrap{
+    max-width: 420px;
+    width: 100%;
+    text-align: center;
+  }
+  .memory-grid{
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    max-width: 360px;
+    margin: 0 auto;
+  }
+  .memory-card{
+    aspect-ratio: 3/4;
+    cursor: pointer;
+    perspective: 700px;
+  }
+  .memory-card-inner{
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transition: transform 0.5s cubic-bezier(.4,.2,.2,1);
+    transform-style: preserve-3d;
+  }
+  .memory-card.flipped .memory-card-inner,
+  .memory-card.matched .memory-card-inner{
+    transform: rotateY(180deg);
+  }
+  .memory-card-face{
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: clamp(1.3rem, 5vw, 1.7rem);
+  }
+  .memory-card-back{
+    background: linear-gradient(160deg, var(--wine), var(--wine-deep));
+    border: 1px solid rgba(212, 160, 108, 0.4);
+    color: var(--rose-gold);
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 1.3rem;
+  }
+  .memory-card-front{
+    background: linear-gradient(160deg, #fbeee2, #f0d9c5);
+    transform: rotateY(180deg);
+  }
+  .memory-card.matched .memory-card-front{
+    box-shadow: 0 0 0 3px var(--rose-gold) inset;
+  }
+  .game-status{
+    margin-top: 1.4rem;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    color: var(--rose-gold);
+  }
+  .game-reset{
+    margin-top: 1rem;
+    background: transparent;
+    border: 1px solid var(--rose-gold);
+    color: var(--rose-gold);
+    padding: 0.5rem 1.3rem;
+    border-radius: 999px;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  .game-reset:hover{
+    background: rgba(212, 160, 108, 0.15);
+  }
+
+  /* JOGO DA VELHA */
+  .tictac-grid{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    max-width: 260px;
+    margin: 0 auto;
+  }
+  .tictac-cell{
+    aspect-ratio: 1/1;
+    background: linear-gradient(160deg, rgba(247,233,225,0.06), rgba(247,233,225,0.02));
+    border: 1px solid rgba(212, 160, 108, 0.4);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: clamp(1.4rem, 6vw, 1.9rem);
+    cursor: pointer;
+    color: var(--gold-shine);
+    transition: background 0.25s ease;
+  }
+  .tictac-cell:hover{
+    background: rgba(212, 160, 108, 0.12);
+  }
+  .tictac-cell.taken{
+    cursor: default;
+  }
+  .tictac-cell.win{
+    background: rgba(212, 160, 108, 0.25);
+  }
+
+  /* FOTOS */
+  .photos-section{
+    min-height: 100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:8vh 6vw;
+  }
+  .photos-wrap{
+    max-width:900px;
+    width:100%;
+  }
+  .photos-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(220px,1fr));
+    gap:1.4rem;
+  }
+  .photo-card{
+    margin:0;
+    border:1px solid rgba(212,160,108,0.35);
+    border-radius:12px;
+    padding:8px;
+    background:rgba(247,233,225,0.04);
+    box-shadow:0 16px 40px rgba(0,0,0,0.25);
+    overflow:hidden;
+    transition: transform 0.45s cubic-bezier(.2,.7,.2,1), border-color 0.45s ease, box-shadow 0.45s ease;
+  }
+  @media (hover: hover){
+    .photo-card:hover{
+      transform: translateY(-6px) rotate(-0.6deg) scale(1.015);
+      border-color: rgba(233, 202, 160, 0.7);
+      box-shadow: 0 24px 50px rgba(0,0,0,0.35), 0 0 24px rgba(211,160,108,0.18);
+    }
+  }
+  .photo-card img{
+    display:block;
+    width:100%;
+    aspect-ratio:4/5;
+    object-fit:cover;
+    border-radius:7px;
+  }
+  .photo-card figcaption{
+    text-align:center;
+    padding:0.8rem 0.3rem 0.35rem;
+    font-family:'Cormorant Garamond',serif;
+    font-style:italic;
+    color:rgba(247,233,225,0.75);
+  }
+  @media (max-width:650px){
+    .photos-grid{ grid-template-columns:1fr; }
+  }
+
+
+/* Ajustes de estabilidade visual e responsividade */
+.scene,
+.page,
+.letter-section,
+.promise-section{
+  width: 100%;
+  overflow: hidden;
+}
+.scene > *,
+.page > *,
+.letter-section > *,
+.promise-section > *{
+  position: relative;
+  z-index: 2;
+}
+.scene > div,
+.page > div,
+.letter-section > div,
+.promise-section > div{
+  width: min(100%, 760px);
+  margin-inline: auto;
+}
+h1.name{
+  display: block;
+  min-height: 1em;
+  visibility: visible;
+}
+h1.name:not(:has(.name-letter)){
+  opacity: 1;
+}
+.name-letter{
+  will-change: transform, opacity;
+}
+.page-title,
+.page-eyebrow,
+.rosary-caption,
+.game-status{
+  text-wrap: balance;
+}
+button,
+.memory-card,
+.tictac-cell,
+.rosary-bead{
+  -webkit-tap-highlight-color: transparent;
+}
+button:focus-visible,
+.memory-card:focus-visible,
+.tictac-cell:focus-visible{
+  outline: 2px solid var(--gold-shine);
+  outline-offset: 4px;
+}
+
+/* Terço: área centralizada e estados mais claros */
+.rosary-section > div{ width: min(100%, 760px); }
+
+/* Mini-jogo do sushi */
+.sushi-wrap{ max-width: 520px; }
+.sushi-score{
+  margin: -1.2rem auto 1.2rem;
+  color: var(--gold-shine);
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 1.1rem;
+}
+.sushi-score strong{ color: var(--rose-gold); font-size: 1.35em; }
+.sushi-board{
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .8rem;
+  max-width: 420px;
+  margin: 0 auto 1.2rem;
+}
+.sushi-ingredient{
+  min-height: 92px;
+  border: 1px solid rgba(212,160,108,.35);
+  border-radius: 14px;
+  background: linear-gradient(160deg, rgba(247,233,225,.13), rgba(247,233,225,.04));
+  color: var(--cream);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .25rem;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1rem;
+  transition: transform .25s ease, background .25s ease, border-color .25s ease, box-shadow .25s ease;
+}
+.sushi-ingredient .ingredient-icon{ font-size: 1.8rem; }
+.sushi-ingredient:hover{ transform: translateY(-4px); border-color: var(--gold-shine); box-shadow: 0 8px 18px rgba(0,0,0,.2); }
+.sushi-ingredient.selected{
+  transform: translateY(-5px) scale(1.03);
+  background: linear-gradient(160deg, rgba(211,160,108,.35), rgba(109,17,48,.55));
+  border-color: var(--gold-shine);
+  box-shadow: 0 0 0 2px rgba(233,202,160,.2), 0 10px 24px rgba(0,0,0,.25);
+}
+.sushi-order{
+  min-height: 3.2rem;
+  max-width: 38ch;
+  margin: 0 auto;
+  padding: .8rem 1rem;
+  border: 1px dashed rgba(212,160,108,.4);
+  border-radius: 10px;
+  color: rgba(247,233,225,.86);
+  line-height: 1.5;
+}
+.sushi-order.success{ color: var(--gold-shine); animation: prayerFade .5s ease; }
+.sushi-order.error{ color: #f2b2a8; animation: shake .35s ease; }
+.sushi-actions{ display: flex; justify-content: center; flex-wrap: wrap; gap: .7rem; }
+.sushi-submit{ background: rgba(211,160,108,.12); }
+@keyframes shake{ 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
+
+@media (max-width: 560px){
+  .chapter-nav{ gap: 7px; padding: 8px; max-width: calc(100vw - 24px); overflow-x: auto; }
+  .chapter-dot{ flex: 0 0 9px; }
+  .page,
+  .letter-section,
+  .promise-section{ padding-inline: 1.1rem; }
+  .sushi-board{ gap: .55rem; }
+  .sushi-ingredient{ min-height: 78px; font-size: .9rem; }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .sushi-ingredient:hover,
+  .sushi-ingredient.selected{ transform: none; }
+}
+
+/* ===== Sushi — estação de montagem ===== */
+.sushi-section{
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.sushi-section::before{
+  content: '';
+  position: absolute;
+  inset: 16% 0 10%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 34%, rgba(233,202,160,.12), transparent 34%),
+    radial-gradient(ellipse at 50% 75%, rgba(109,17,48,.28), transparent 56%);
+  filter: blur(14px);
+}
+
+.sushi-wrap{
+  max-width: 760px;
+}
+
+.sushi-wrap .page-title{
+  margin-bottom: 1.25rem;
+}
+
+.sushi-dashboard{
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 1rem;
+  width: min(100%, 630px);
+  margin: 1.7rem auto 1rem;
+}
+
+.sushi-score{
+  display: flex;
+  align-items: baseline;
+  gap: .6rem;
+  margin: 0;
+  padding: .7rem 1rem;
+  border: 1px solid rgba(233,202,160,.3);
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(247,233,225,.1), rgba(42,6,15,.25));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 8px 22px rgba(0,0,0,.14);
+}
+
+.sushi-stat-label{
+  color: rgba(247,233,225,.68);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: .93rem;
+  font-style: italic;
+}
+
+.sushi-score strong{
+  color: var(--gold-shine);
+  font-family: 'Playfair Display', serif;
+  font-size: 1.75rem;
+  line-height: 1;
+  text-shadow: 0 0 16px rgba(233,202,160,.3);
+}
+
+.sushi-round{
+  display: flex;
+  align-items: center;
+  padding: .7rem 1rem;
+  border: 1px solid rgba(233,202,160,.22);
+  border-radius: 16px;
+  color: var(--rose-gold);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: .86rem;
+  font-style: italic;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  background: rgba(42,6,15,.23);
+}
+
+.sushi-assembly{
+  width: min(100%, 630px);
+  margin: 0 auto;
+  padding: .9rem 1rem 1rem;
+  border: 1px solid rgba(233,202,160,.18);
+  border-radius: 16px;
+  background: rgba(42,6,15,.2);
+}
+
+.sushi-assembly-meta{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: .55rem;
+  color: rgba(247,233,225,.68);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: .95rem;
+  font-style: italic;
+}
+
+.sushi-assembly-meta strong{
+  color: var(--gold-shine);
+  font-family: 'Playfair Display', serif;
+  font-size: 1rem;
+  font-style: normal;
+}
+
+.sushi-selection-track{
+  height: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(233,202,160,.12);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,.3);
+}
+
+.sushi-selection-track span{
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--wine-light), var(--rose-gold), var(--gold-shine));
+  box-shadow: 0 0 12px rgba(233,202,160,.5);
+  transition: width .35s cubic-bezier(.2,.7,.2,1);
+}
+
+.sushi-order{
+  display: grid;
+  gap: .2rem;
+  min-height: 7.2rem;
+  width: min(100%, 630px);
+  margin: 1.1rem auto 1.3rem;
+  padding: 1rem 1.25rem 1.1rem;
+  border: 1px solid rgba(233,202,160,.34);
+  border-radius: 20px;
+  background:
+    linear-gradient(135deg, rgba(247,233,225,.11), rgba(109,17,48,.18) 58%, rgba(42,6,15,.32));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.1), 0 14px 30px rgba(0,0,0,.18);
+  text-align: center;
+}
+
+.order-kicker{
+  color: var(--rose-gold);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: .72rem;
+  font-style: italic;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+
+.sushi-order strong{
+  color: var(--gold-shine);
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.15rem, 2.6vw, 1.45rem);
+  font-style: italic;
+}
+
+.sushi-order > span:last-child{
+  color: rgba(247,233,225,.78);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1rem;
+}
+
+.sushi-order.success{
+  border-color: rgba(233,202,160,.75);
+  background: linear-gradient(135deg, rgba(233,202,160,.2), rgba(109,17,48,.3));
+}
+
+.sushi-order.success strong{ color: #fff0cf; }
+.sushi-order.error{ border-color: rgba(242,178,168,.55); }
+
+.sushi-board{
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  width: min(100%, 680px);
+  max-width: none;
+  margin: 0 auto 1.4rem;
+}
+
+.sushi-ingredient{
+  position: relative;
+  min-height: 140px;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  border: 1px solid rgba(233,202,160,.3);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(255,248,230,.12), transparent 32%),
+    linear-gradient(150deg, rgba(247,233,225,.12), rgba(109,17,48,.25) 58%, rgba(42,6,15,.32));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.09), 0 12px 26px rgba(0,0,0,.18);
+  color: var(--cream);
+  cursor: pointer;
+  gap: .35rem;
+  transition: transform .28s cubic-bezier(.2,.7,.2,1), border-color .28s ease, background .28s ease, box-shadow .28s ease;
+}
+
+.sushi-ingredient::before{
+  content: '';
+  position: absolute;
+  inset: 7px;
+  border: 1px solid rgba(233,202,160,.09);
+  border-radius: 16px;
+  pointer-events: none;
+}
+
+.sushi-ingredient:hover{
+  transform: translateY(-6px);
+  border-color: rgba(233,202,160,.75);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.14), 0 18px 32px rgba(0,0,0,.28), 0 0 18px rgba(211,160,108,.12);
+}
+
+.sushi-ingredient.selected{
+  transform: translateY(-6px) scale(1.035);
+  border-color: var(--gold-shine);
+  background:
+    radial-gradient(circle at 50% 18%, rgba(255,248,230,.2), transparent 32%),
+    linear-gradient(150deg, rgba(233,202,160,.35), rgba(109,17,48,.6) 60%, rgba(42,6,15,.38));
+  box-shadow: inset 0 0 0 2px rgba(233,202,160,.24), 0 18px 34px rgba(0,0,0,.3), 0 0 24px rgba(233,202,160,.18);
+}
+
+.sushi-ingredient.correct{
+  border-color: #f5e2b7;
+  box-shadow: inset 0 0 0 3px rgba(233,202,160,.45), 0 0 28px rgba(233,202,160,.38);
+}
+
+.sushi-ingredient .ingredient-icon{
+  position: relative;
+  z-index: 1;
+  font-size: clamp(2.25rem, 6vw, 3.15rem);
+  line-height: 1;
+  filter: drop-shadow(0 5px 8px rgba(0,0,0,.2));
+}
+
+.sushi-ingredient .ingredient-label{
+  position: relative;
+  z-index: 1;
+  color: rgba(247,233,225,.9);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(.98rem, 2vw, 1.12rem);
+  font-style: italic;
+}
+
+.ingredient-check{
+  position: absolute;
+  top: 11px;
+  right: 12px;
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border: 1px solid rgba(233,202,160,.3);
+  border-radius: 50%;
+  background: rgba(42,6,15,.4);
+  color: transparent;
+  font-size: .85rem;
+  font-weight: 700;
+  transition: background .25s ease, color .25s ease, transform .25s ease;
+}
+
+.sushi-ingredient.selected .ingredient-check{
+  background: var(--gold-shine);
+  color: var(--wine-deepest);
+  transform: scale(1.1);
+}
+
+.sushi-actions{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: .7rem;
+  width: min(100%, 680px);
+  margin: 0 auto;
+}
+
+.sushi-actions button{
+  min-height: 44px;
+  margin-top: 0;
+  padding: .7rem 1.2rem;
+}
+
+.sushi-clear{
+  border-color: rgba(247,233,225,.38);
+  color: rgba(247,233,225,.72);
+}
+
+.sushi-submit{
+  border-color: transparent;
+  background: linear-gradient(120deg, rgba(211,160,108,.95), rgba(233,202,160,.95));
+  color: var(--wine-deepest);
+  box-shadow: 0 8px 18px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.35);
+}
+
+.sushi-submit:hover{
+  background: linear-gradient(120deg, var(--gold-shine), #fff0d1);
+}
+
+.shake-board{ animation: sushiShake .36s ease; }
+
+@keyframes sushiShake{
+  20%{ transform: translateX(-7px); }
+  40%{ transform: translateX(7px); }
+  60%{ transform: translateX(-4px); }
+  80%{ transform: translateX(4px); }
+}
+
+@media (max-width: 560px){
+  .sushi-dashboard{ gap: .65rem; }
+  .sushi-score, .sushi-round{ padding: .6rem .75rem; }
+  .sushi-score strong{ font-size: 1.45rem; }
+  .sushi-round{ font-size: .75rem; }
+  .sushi-board{ gap: .6rem; }
+  .sushi-ingredient{ min-height: 104px; border-radius: 16px; }
+  .sushi-ingredient::before{ inset: 5px; border-radius: 11px; }
+  .ingredient-check{ top: 7px; right: 7px; width: 20px; height: 20px; font-size: .72rem; }
+  .sushi-ingredient .ingredient-icon{ font-size: 2.1rem; }
+  .sushi-ingredient .ingredient-label{ font-size: .9rem; }
+  .sushi-actions button{ flex: 1 1 auto; }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .sushi-ingredient:hover,
+  .sushi-ingredient.selected{ transform: none; }
+  .shake-board{ animation: none; }
+}
+
+/* O nome nunca fica invisível durante o atraso inicial da animação. */
+h1.name .name-letter{ opacity: 1; }
+
+/* Os spans criados pelo JavaScript precisam ter preenchimento próprio para não herdar o transparente do gradiente do h1. */
+h1.name .name-letter{
+  color: var(--gold-shine);
+  -webkit-text-fill-color: var(--gold-shine);
+  text-shadow: 0 0 26px rgba(233,202,160,.22);
+}
+
+
+/* Correção final de alinhamento: carta e corações permanecem retos. */
+.letter-card,
+.envelope,
+.envelope-body{
+  rotate: 0deg;
+}
+.letter-peek,
+.envelope.open .letter-peek{
+  rotate: 0deg;
+}
+.heart-divider svg,
+.promise-heart,
+.forever-heart{
+  rotate: 0deg;
+}
+.heart-particle{
+  rotate: 0deg;
+}
+@keyframes heartPop{
+  0%{ transform: translate(-50%,-50%) scale(0); opacity: 1; }
+  70%{ opacity: 1; }
+  100%{ transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1); opacity: 0; }
+}
+
+
+/* Envelope reto: sem perspectiva 3D ou rotação que distorça a carta. */
+.envelope{
+  perspective: none;
+  transform: none !important;
+  transform-style: flat;
+}
+.envelope-flap{
+  transform: translateY(0) rotate(0deg) !important;
+  transform-origin: top center;
+}
+.envelope.open .envelope-flap{
+  transform: translateY(-92%) rotate(0deg) !important;
+}
+
+
+/* Centralização do envelope: o contêiner ocupava toda a largura, mas o desenho ficava alinhado à esquerda. */
+.envelope-wrap{
+  width: 100% !important;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+.envelope-link{
+  display: block;
+  width: max-content;
+  margin-inline: auto;
+}
+
+
+/* O coração final é um SVG no fluxo normal; não deve usar o translate do selo. */
+.forever-heart{
+  transform: none;
+  animation: foreverHeartbeat 2.2s ease-in-out infinite;
+}
+@keyframes foreverHeartbeat{
+  0%, 100%{ transform: scale(1); }
+  15%{ transform: scale(1.12); }
+  30%{ transform: scale(1); }
+  45%{ transform: scale(1.08); }
+  60%{ transform: scale(1); }
+}
+
+/* ===== Terço de São Bento (novo) ===== */
+/* Terço de São Bento — visual */
+
+.rosary-stage {
+  perspective: 900px;
+}
+
+.rosary svg {
+  width: min(100%, 460px);
+  height: auto;
+  overflow: visible;
+}
+
+.chain-ring {
+  stroke: rgba(212, 160, 108, 0.28);
+  stroke-width: 1.2;
+  stroke-dasharray: 3 5;
+}
+
+.chain-ring-inner {
+  stroke: rgba(212, 160, 108, 0.1);
+  stroke-width: 0.6;
+}
+
+.label-line {
+  stroke: rgba(212, 160, 108, 0.45);
+  stroke-width: 0.7;
+  fill: none;
+  pointer-events: none;
+}
+
+.label-dot {
+  fill: var(--rose-gold);
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.rosary-label {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-weight: 600;
+  font-size: 9.5px;
+  letter-spacing: 0.05em;
+  fill: var(--gold-shine);
+  opacity: 0.92;
+  pointer-events: none;
+}
+
+.rosary-label-note {
+  font-style: normal;
+  font-weight: 400;
+  font-size: 7.5px;
+  fill: var(--rose-gold);
+  opacity: 0.75;
+}
+
+.chain-line {
+  stroke: rgba(212, 160, 108, 0.55);
+  stroke-width: 1.5;
+  fill: none;
+}
+
+.rosary-bead {
+  cursor: pointer;
+  outline: none;
+  transition:
+    transform 0.35s cubic-bezier(0.2, 0.7, 0.3, 1),
+    filter 0.35s ease,
+    opacity 0.35s ease;
+  /* transform-origin exato (em coordenadas do SVG) é definido por conta via JS,
+     então cada conta escala/brilha exatamente no próprio lugar — nunca "voa" para o lado. */
+}
+
+.bead-core {
+  transition: filter 0.35s ease;
+}
+
+.bead-shine {
+  fill: rgba(255, 245, 225, 0.75);
+  pointer-events: none;
+}
+
+.bead-halo,
+.medal-halo,
+.cross-glow {
+  fill: none;
+  stroke: rgba(233, 202, 160, 0);
+  stroke-width: 1.4;
+  transition:
+    stroke 0.4s ease,
+    opacity 0.4s ease;
+}
+
+.rosary-bead:hover {
+  transform: scale(1.25);
+  filter: drop-shadow(0 0 6px rgba(233, 202, 160, 0.6));
+}
+
+.rosary-bead:focus-visible {
+  filter: drop-shadow(0 0 7px rgba(233, 202, 160, 0.9));
+}
+
+.rosary-bead.prayed {
+  opacity: 0.5;
+}
+
+.rosary-bead.prayed .bead-core {
+  filter: saturate(0.5);
+}
+
+.rosary-bead.current {
+  opacity: 1;
+  transform: scale(1.45);
+  filter: drop-shadow(0 0 10px rgba(233, 202, 160, 0.9));
+}
+
+.rosary-bead.current .bead-halo,
+.rosary-bead.current .medal-halo,
+.rosary-bead.current .cross-glow {
+  stroke: rgba(233, 202, 160, 0.85);
+  animation: beadPulse 1.8s ease-in-out infinite;
+}
+
+@keyframes beadPulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.medal-bg {
+  fill: #3f0a1a;
+}
+.medal-ring {
+  filter: drop-shadow(0 0 6px rgba(233, 202, 160, 0.35));
+}
+.medal-cross {
+  stroke: rgba(233, 202, 160, 0.9);
+  stroke-width: 1.6;
+}
+.medal-text {
+  fill: #e9caa0;
+  font-size: 5.4px;
+  letter-spacing: 0.14em;
+  font-family: "Cormorant Garamond", serif;
+}
+
+.prayer-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.4rem;
+}
+
+.prayer-count {
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(233, 202, 160, 0.7);
+}
+
+.prayer-text {
+  white-space: pre-line;
+}
+
+.prayer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  justify-content: center;
+  margin-top: 1.6rem;
+}
+
+.prayer-card #prayerReset {
+  margin-top: 0;
+}
+
+.prayer-next {
+  background: linear-gradient(120deg, rgba(212, 160, 108, 0.9), rgba(233, 202, 160, 0.9));
+  color: #2a060f;
+  border-color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rosary-bead,
+  .rosary-bead.current .bead-halo {
+    transition: none;
+    animation: none;
+  }
+}
+
+/* ===== Ajustes para celular (o site é aberto principalmente no celular) ===== */
+.rosary-section{
+  padding-bottom: calc(3rem + env(safe-area-inset-bottom, 0px));
+}
+@media (max-width: 650px){
+  .rosary{ width: min(100%, 420px); }
+  .rosary svg{ width: min(100%, 420px); }
+  .rosary-stage{ padding-top: 0.5rem; }
+  .prayer-card{ margin: 1.8rem 0.75rem 0; }
+  .prayer-text{ font-size: 1.02rem; line-height: 1.65; }
+  .prayer-actions{ gap: 0.6rem; }
+  .prayer-actions button{ padding: 0.85rem 1.5rem; font-size: 1rem; min-height: 44px; }
+  .prayer-count{ font-size: 0.78rem; }
+  .rosary-label{ font-size: 8.5px; }
+  .rosary-label-note{ font-size: 6.8px; }
+}
+@media (max-width: 400px){
+  .rosary-label{ font-size: 7.6px; }
+  .rosary-label-note{ font-size: 6.2px; }
+}
+
+/* ===== Terço — acabamento editorial e contemplativo ===== */
+.rosary-section{
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.rosary-section::before{
+  content: '';
+  position: absolute;
+  inset: 10% 0 8%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 38%, rgba(211,160,108,.12), transparent 34%),
+    radial-gradient(ellipse at 50% 72%, rgba(109,17,48,.22), transparent 50%);
+  filter: blur(12px);
+}
+
+.rosary-section > div{
+  width: min(100%, 920px);
+}
+
+.rosary-header{
+  margin-bottom: .35rem;
+}
+
+.rosary-header .page-eyebrow{
+  margin-bottom: .85rem;
+}
+
+.rosary-header .page-title{
+  margin-bottom: .75rem;
+}
+
+.rosary-ornament{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .8rem;
+  width: min(220px, 58vw);
+  margin: 0 auto;
+  color: var(--gold-shine);
+}
+
+.rosary-ornament span{
+  height: 1px;
+  flex: 1;
+  background: linear-gradient(90deg, transparent, rgba(233,202,160,.7));
+}
+
+.rosary-ornament span:last-child{
+  background: linear-gradient(90deg, rgba(233,202,160,.7), transparent);
+}
+
+.rosary-ornament i{
+  font-family: 'Cormorant Garamond', serif;
+  font-style: normal;
+  font-size: .8rem;
+  line-height: 1;
+  text-shadow: 0 0 14px rgba(233,202,160,.55);
+}
+
+.rosary-intro{
+  margin: .75rem auto 0;
+  color: rgba(233,202,160,.72);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: .78rem;
+  font-style: italic;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.rosary-caption{
+  position: relative;
+  max-width: 48ch;
+  margin: 1.15rem auto 0;
+  padding: .8rem 1.25rem;
+  border: 1px solid rgba(233,202,160,.18);
+  border-radius: 999px;
+  background: rgba(42,6,15,.28);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 10px 30px rgba(0,0,0,.12);
+  text-align: center;
+}
+
+.rosary-order-guide{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: .45rem .7rem;
+  width: min(100%, 760px);
+  margin: 1rem auto 0;
+  color: rgba(247,233,225,.63);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: .83rem;
+  font-style: italic;
+}
+
+.guide-item{
+  display: inline-flex;
+  align-items: center;
+  gap: .32rem;
+  white-space: nowrap;
+}
+
+.guide-item b{
+  display: inline-grid;
+  width: 1.35rem;
+  height: 1.35rem;
+  place-items: center;
+  border: 1px solid rgba(233,202,160,.35);
+  border-radius: 50%;
+  background: rgba(42,6,15,.35);
+  color: var(--gold-shine);
+  font-family: 'Playfair Display', serif;
+  font-size: .7rem;
+  font-style: normal;
+}
+
+.rosary-order-guide > i{
+  color: rgba(233,202,160,.55);
+  font-style: normal;
+}
+
+.rosary-stage{
+  position: relative;
+  width: min(100%, 700px);
+  margin: 1.8rem auto 0;
+  padding: 1.55rem 1.1rem 1.25rem;
+  border: 1px solid rgba(233,202,160,.3);
+  border-radius: 34px;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(233,202,160,.075), transparent 35%),
+    linear-gradient(145deg, rgba(247,233,225,.07), rgba(42,6,15,.24) 58%, rgba(10,2,6,.32));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.1),
+    inset 0 0 0 1px rgba(42,6,15,.35),
+    0 24px 65px rgba(0,0,0,.28),
+    0 0 34px rgba(211,160,108,.08);
+  overflow: hidden;
+}
+
+.rosary-stage::before{
+  content: '';
+  position: absolute;
+  inset: .55rem;
+  border: 1px solid rgba(233,202,160,.12);
+  border-radius: 26px;
+  pointer-events: none;
+}
+
+.rosary-stage::after{
+  content: '✦';
+  position: absolute;
+  top: .42rem;
+  left: 50%;
+  color: rgba(233,202,160,.46);
+  font-size: .65rem;
+  transform: translateX(-50%);
+  text-shadow: 0 0 12px rgba(233,202,160,.42);
+}
+
+.rosary{
+  position: relative;
+  z-index: 1;
+  width: min(100%, 520px);
+  filter: drop-shadow(0 16px 26px rgba(0,0,0,.54)) drop-shadow(0 0 18px rgba(211,160,108,.08));
+}
+
+.rosary svg{
+  display: block;
+  width: 100%;
+}
+
+.chain-ring{
+  stroke: rgba(233,202,160,.38);
+  stroke-width: 1.25;
+  stroke-dasharray: 2.5 5;
+  filter: drop-shadow(0 0 3px rgba(233,202,160,.22));
+}
+
+.chain-ring-inner{
+  stroke: rgba(233,202,160,.16);
+  stroke-width: .75;
+}
+
+.chain-line{
+  stroke: rgba(233,202,160,.68);
+  stroke-width: 1.45;
+  filter: drop-shadow(0 0 2px rgba(233,202,160,.2));
+}
+
+.label-line{
+  stroke: rgba(233,202,160,.58);
+  stroke-width: .85;
+}
+
+.label-dot{
+  fill: var(--gold-shine);
+  opacity: .95;
+  filter: drop-shadow(0 0 3px rgba(233,202,160,.65));
+}
+
+.rosary-label{
+  fill: #f3d9aa;
+  font-size: 9.8px;
+  letter-spacing: .06em;
+  paint-order: stroke;
+  stroke: rgba(42,6,15,.72);
+  stroke-width: 1.8px;
+  stroke-linejoin: round;
+}
+
+.rosary-label-note{
+  fill: rgba(233,202,160,.86);
+  font-size: 7.55px;
+  stroke-width: 1.4px;
+}
+
+.rosary-bead{
+  transition:
+    transform .38s cubic-bezier(.2,.75,.25,1),
+    filter .38s ease,
+    opacity .38s ease;
+}
+
+.rosary-bead:hover{
+  transform: scale(1.28);
+  filter: drop-shadow(0 0 8px rgba(233,202,160,.78));
+}
+
+.rosary-bead.current{
+  transform: scale(1.48);
+  filter: drop-shadow(0 0 12px rgba(233,202,160,1)) drop-shadow(0 0 24px rgba(109,17,48,.8));
+}
+
+.rosary-bead.prayed{
+  opacity: .58;
+}
+
+.rosary-bead.prayed .bead-core{
+  filter: saturate(.62) brightness(.78);
+}
+
+.bead-shine{
+  fill: rgba(255,248,230,.82);
+}
+
+.medal-ring{
+  filter: drop-shadow(0 0 8px rgba(233,202,160,.5));
+}
+
+.medal-bg{
+  fill: #4b0d21;
+}
+
+.medal-text{
+  fill: #f6dcad;
+  font-weight: 600;
+}
+
+.prayer-card{
+  position: relative;
+  max-width: 560px;
+  margin: 1.55rem auto 0;
+  padding: 1.35rem clamp(1.2rem, 4vw, 2.4rem) 1.55rem;
+  border: 1px solid rgba(233,202,160,.32);
+  border-radius: 22px;
+  background:
+    linear-gradient(155deg, rgba(247,233,225,.105), rgba(247,233,225,.025) 45%, rgba(42,6,15,.32));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.1),
+    0 18px 44px rgba(0,0,0,.22),
+    0 0 30px rgba(211,160,108,.06);
+  backdrop-filter: blur(9px);
+}
+
+.prayer-card::before{
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 18%;
+  right: 18%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(233,202,160,.8), transparent);
+}
+
+.prayer-progress{
+  height: 5px;
+  margin-bottom: 1.15rem;
+  background: rgba(233,202,160,.13);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,.25);
+}
+
+.prayer-progress-fill{
+  background: linear-gradient(90deg, var(--wine-light), var(--rose-gold) 55%, var(--gold-shine));
+  box-shadow: 0 0 10px rgba(233,202,160,.4);
+}
+
+.prayer-meta{
+  align-items: center;
+  margin-bottom: .7rem;
+}
+
+.prayer-step{
+  flex: 1;
+  margin-bottom: 0;
+  text-align: left;
+}
+
+.prayer-count{
+  padding: .28rem .6rem;
+  border: 1px solid rgba(233,202,160,.2);
+  border-radius: 999px;
+  background: rgba(42,6,15,.26);
+  color: rgba(233,202,160,.86);
+  white-space: nowrap;
+}
+
+.prayer-title{
+  margin-bottom: .65rem;
+  text-shadow: 0 0 20px rgba(233,202,160,.16);
+}
+
+.prayer-text{
+  color: rgba(247,233,225,.9);
+}
+
+.prayer-actions button{
+  min-height: 42px;
+  padding: .62rem 1.1rem;
+  transition: transform .25s ease, background .3s ease, box-shadow .3s ease, border-color .3s ease;
+}
+
+.prayer-actions button:hover{
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(0,0,0,.2);
+}
+
+.prayer-next{
+  background: linear-gradient(120deg, rgba(211,160,108,.95), rgba(233,202,160,.95));
+  box-shadow: 0 8px 18px rgba(0,0,0,.2), inset 0 1px 0 rgba(255,255,255,.35);
+}
+
+@media (max-width: 650px){
+  .rosary-section{ padding-top: 6vh; }
+  .rosary-caption{
+    border-radius: 18px;
+    line-height: 1.5;
+  }
+  .rosary-stage{
+    margin-top: 1.35rem;
+    padding: 1.2rem .35rem .95rem;
+    border-radius: 26px;
+  }
+  .rosary-stage::before{ inset: .42rem; border-radius: 20px; }
+  .rosary-intro{ font-size: .7rem; letter-spacing: .08em; }
+  .prayer-card{ border-radius: 18px; }
+  .prayer-meta{ align-items: flex-start; }
+  .prayer-step{ line-height: 1.25; }
+}
+
+@media (max-width: 400px){
+  .rosary-stage{ padding-inline: 0; }
+  .rosary-label{ font-size: 7.8px; }
+  .rosary-label-note{ font-size: 6.35px; }
+  .prayer-actions{ flex-direction: column; }
+  .prayer-actions button{ width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .prayer-actions button:hover{ transform: none; }
+}
