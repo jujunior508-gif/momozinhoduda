@@ -124,17 +124,19 @@
       <div class="rosary-header">
         <div class="page-eyebrow">no meio dessa história</div>
         <h2 class="page-title">Terço de São Bento</h2>
+        <div class="rosary-ornament" aria-hidden="true"><span></span><i>✦</i><span></span></div>
+        <p class="rosary-intro">um momento de fé, cuidado e intenção por nós dois</p>
       </div>
       <p class="rosary-caption" id="rosaryCaption">Comece pelo crucifixo e siga conta por conta — na ordem certa, do jeito que se reza.</p>
 
       <div class="rosary-stage">
         <div class="rosary" id="rosary">
-          <svg viewBox="0 0 200 600" xmlns="http://www.w3.org/2000/svg" id="rosarySvg">
+          <svg viewBox="0 0 390 700" xmlns="http://www.w3.org/2000/svg" id="rosarySvg">
             <defs>
               <radialGradient id="beadGrad" cx="35%" cy="30%">
-                <stop offset="0%" stop-color="#5a5a62"/>
-                <stop offset="45%" stop-color="#222226"/>
-                <stop offset="100%" stop-color="#050506"/>
+                <stop offset="0%" stop-color="#725364"/>
+                <stop offset="45%" stop-color="#32101f"/>
+                <stop offset="100%" stop-color="#07070b"/>
               </radialGradient>
               <radialGradient id="paterGrad" cx="35%" cy="30%">
                 <stop offset="0%" stop-color="#ffffff"/>
@@ -150,6 +152,9 @@
                 <feGaussianBlur stdDeviation="3" result="b"/>
                 <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
               </filter>
+              <marker id="labelArrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M0,0 L8,4 L0,8 Z" fill="#d3a06c"/>
+              </marker>
             </defs>
             <g class="rosary-group" id="rosaryGroup"></g>
           </svg>
