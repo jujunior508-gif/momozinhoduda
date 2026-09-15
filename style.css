@@ -2475,3 +2475,127 @@ body::before{
 @media (prefers-reduced-motion: reduce){
   .scene::before{ box-shadow: 0 0 0 36px rgba(166,56,86,.025); }
 }
+
+/* ===== Envelope redesenhado e corações brancos ===== */
+.envelope{
+  width: min(310px, 72vw);
+  perspective: 900px;
+  transform: none !important;
+  filter: drop-shadow(0 24px 28px rgba(0,0,0,.38)) drop-shadow(0 0 22px rgba(242,210,162,.08));
+}
+
+.envelope-body{
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.5);
+  border-radius: 10px;
+  background: linear-gradient(145deg, #fffaf3 0%, #f3d8bd 100%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.92), inset 0 -18px 28px rgba(123,64,49,.1);
+}
+
+.envelope-body::before{
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: linear-gradient(150deg, #f9e6d2 0%, #eec7a5 100%);
+  clip-path: polygon(0 0, 50% 57%, 100% 0, 100% 100%, 0 100%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.6);
+  pointer-events: none;
+}
+
+.envelope-body::after{
+  content: '';
+  position: absolute;
+  z-index: 3;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 58%;
+  background: linear-gradient(145deg, rgba(255,255,255,.23), rgba(166,86,69,.13));
+  clip-path: polygon(0 100%, 50% 8%, 100% 100%);
+  pointer-events: none;
+}
+
+.letter-peek{
+  left: 8%;
+  right: 8%;
+  bottom: 10%;
+  height: 72%;
+  z-index: 1;
+  border: 1px solid rgba(132,67,58,.17);
+  border-radius: 5px 5px 2px 2px;
+  box-shadow: 0 8px 14px rgba(71,22,24,.16);
+}
+
+.letter-peek::before{
+  content: 'para você';
+  position: absolute;
+  top: 19%;
+  left: 50%;
+  color: rgba(104,16,45,.58);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: .85rem;
+  font-style: italic;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  transform: translateX(-50%);
+}
+
+.letter-peek::after{
+  content: '';
+  position: absolute;
+  top: 45%;
+  left: 18%;
+  width: 64%;
+  height: 1px;
+  background: rgba(104,16,45,.15);
+  box-shadow: 0 10px 0 rgba(104,16,45,.12), 0 20px 0 rgba(104,16,45,.1);
+}
+
+.envelope-flap{
+  height: 58%;
+  z-index: 4;
+  border: 1px solid rgba(255,255,255,.38);
+  border-bottom: 0;
+  border-radius: 10px 10px 0 0;
+  background: linear-gradient(145deg, #fdebd7, #eabf99);
+  transform: rotateX(0deg) !important;
+  backface-visibility: hidden;
+}
+
+.seal{
+  width: 62px;
+  height: 62px;
+  z-index: 5;
+  color: #fff;
+  border: 2px solid rgba(255,255,255,.68);
+  background: radial-gradient(circle at 35% 28%, #bd5b76, var(--wine) 57%, #3b0719 100%);
+  box-shadow: 0 5px 12px rgba(0,0,0,.32), inset 0 1px 3px rgba(255,255,255,.3);
+}
+
+.envelope.open .envelope-flap{
+  z-index: 0;
+  transform: translateY(-52%) rotateX(180deg) !important;
+}
+
+.envelope.open .letter-peek{
+  transform: translateY(-62%) !important;
+}
+
+.heart-particle,
+.promise-heart,
+.forever-heart,
+.reason svg,
+.heart-divider svg{
+  fill: #fff;
+  filter: drop-shadow(0 0 8px rgba(255,255,255,.3));
+}
+
+.petal svg path{
+  fill: #fff !important;
+}
+
+@media (max-width: 420px){
+  .envelope-wrap{ margin-top: 3.2rem; }
+  .envelope{ width: min(290px, 78vw); }
+}
