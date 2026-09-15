@@ -925,7 +925,41 @@ E, em seguida: ${GLORIA_TEXT}` : `${AVE_TEXT} (${OPENING_AVE_INTENTIONS[i]})`
       countEl.textContent = `0 / ${total}`;
   }
 
+  function initRelationshipCounter() {
+    const counter = document.getElementById("relationshipCounter");
+    if (!counter)
+      return;
+    const startValue = counter.dataset.start;
+    if (!startValue)
+      return;
+    const start = new Date(startValue);
+    if (Number.isNaN(start.getTime()))
+      return;
+    const daysEl = document.getElementById("loveDays");
+    const hoursEl = document.getElementById("loveHours");
+    const minutesEl = document.getElementById("loveMinutes");
+    const noteEl = document.getElementById("counterNote");
+    const update = () => {
+      const diff = Math.max(0, Date.now() - start.getTime());
+      const totalMinutes = Math.floor(diff / 6e4);
+      const days = Math.floor(totalMinutes / 1440);
+      const hours = Math.floor(totalMinutes % 1440 / 60);
+      const minutes = totalMinutes % 60;
+      if (daysEl)
+        daysEl.textContent = String(days);
+      if (hoursEl)
+        hoursEl.textContent = String(hours).padStart(2, "0");
+      if (minutesEl)
+        minutesEl.textContent = String(minutes).padStart(2, "0");
+      if (noteEl)
+        noteEl.textContent = "desde o começo da nossa história.";
+    };
+    update();
+    window.setInterval(update, 3e4);
+  }
+
   // entry.ts
   initLegacySite();
   initRosary();
+  initRelationshipCounter();
 })();
