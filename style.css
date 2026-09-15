@@ -2599,3 +2599,141 @@ body::before{
   .envelope-wrap{ margin-top: 3.2rem; }
   .envelope{ width: min(290px, 78vw); }
 }
+
+/* ===== Contador, bilhetes e QR code ===== */
+.counter-section{
+  display: flex;
+  min-height: 66svh;
+  min-height: 66dvh;
+  align-items: center;
+  justify-content: center;
+  padding: 10vh 6vw;
+}
+
+.counter-card{
+  width: min(100%, 620px);
+  padding: clamp(2rem, 6vw, 4rem);
+  border: 1px solid rgba(242,210,162,.3);
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at 50% 0, rgba(242,210,162,.14), transparent 38%),
+    linear-gradient(145deg, rgba(255,245,232,.09), rgba(79,8,32,.48));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 22px 52px rgba(0,0,0,.22);
+  text-align: center;
+}
+
+.counter-card .letter-eyebrow{ margin-bottom: .9rem; }
+
+.counter-title{
+  color: var(--gold-shine);
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-style: italic;
+  line-height: 1.1;
+}
+
+.counter-grid{
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(.6rem, 3vw, 1.5rem);
+  margin: 2.2rem auto 1.35rem;
+}
+
+.counter-grid div{
+  min-width: 0;
+  padding: 1rem .35rem;
+  border: 1px solid rgba(242,210,162,.17);
+  border-radius: 16px;
+  background: rgba(22,3,9,.22);
+}
+
+.counter-grid strong{
+  display: block;
+  color: #fff;
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.7rem, 6vw, 2.7rem);
+  font-weight: 600;
+  line-height: 1;
+}
+
+.counter-grid span,
+.counter-note{
+  color: rgba(247,233,225,.72);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: .9rem;
+  font-style: italic;
+}
+
+.counter-grid span{ display: block; margin-top: .45rem; }
+.counter-note{ font-size: 1.05rem; }
+
+.open-when-wrap{ width: min(100%, 650px); }
+.open-when-wrap .page-title{ margin-bottom: 1.8rem; }
+.open-when-list{ display: grid; gap: .8rem; }
+
+.open-when-note{
+  border: 1px solid rgba(242,210,162,.25);
+  border-radius: 16px;
+  background: rgba(41,5,17,.38);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.07);
+  overflow: hidden;
+}
+
+.open-when-note summary{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 56px;
+  padding: 1rem 1.2rem;
+  color: var(--gold-shine);
+  cursor: pointer;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(1.08rem, 3vw, 1.3rem);
+  font-style: italic;
+  list-style: none;
+}
+
+.open-when-note summary::-webkit-details-marker{ display: none; }
+.open-when-note summary span{ font-size: 1.45rem; transition: transform .25s ease; }
+.open-when-note[open] summary span{ transform: rotate(45deg); }
+
+.open-when-note p{
+  padding: 0 1.2rem 1.25rem;
+  color: rgba(247,233,225,.9);
+  font-size: 1.06rem;
+  line-height: 1.65;
+}
+
+.qr-card{
+  width: min(100%, 290px);
+  margin: 2.3rem auto 0;
+  padding: .8rem .8rem 1rem;
+  border: 1px solid rgba(242,210,162,.35);
+  border-radius: 18px;
+  background: rgba(255,250,243,.96);
+  box-shadow: 0 14px 28px rgba(0,0,0,.22);
+}
+
+.qr-card img{
+  display: block;
+  width: min(100%, 220px);
+  margin: 0 auto;
+  border-radius: 8px;
+}
+
+.qr-card p{
+  margin: .55rem .35rem 0;
+  color: var(--wine-deep);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: .93rem;
+  font-style: italic;
+  line-height: 1.3;
+}
+
+@media (max-width: 390px){
+  .counter-section{ padding-inline: 1.1rem; }
+  .counter-card{ padding: 1.7rem 1rem; }
+  .counter-grid{ gap: .45rem; }
+  .counter-grid div{ padding-inline: .2rem; }
+}
