@@ -2737,3 +2737,44 @@ body::before{
   .counter-grid{ gap: .45rem; }
   .counter-grid div{ padding-inline: .2rem; }
 }
+
+/* Legendas opcionais do terço */
+.rosary-label-toggle{
+  display: block;
+  min-height: 40px;
+  margin: .85rem auto 0;
+  padding: .45rem 1rem;
+  border: 1px solid rgba(242,210,162,.32);
+  border-radius: 999px;
+  background: rgba(44,5,18,.28);
+  color: rgba(242,210,162,.88);
+  cursor: pointer;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: .95rem;
+  font-style: italic;
+  transition: background .25s ease, border-color .25s ease, transform .25s ease;
+}
+
+.rosary-label-toggle:hover,
+.rosary-label-toggle:focus-visible{
+  border-color: var(--gold-shine);
+  background: rgba(166,56,86,.28);
+  transform: translateY(-1px);
+}
+
+.rosary-label,
+.label-line,
+.label-dot{
+  transition: opacity .28s ease;
+}
+
+.rosary.labels-hidden .rosary-label,
+.rosary.labels-hidden .label-line,
+.rosary.labels-hidden .label-dot{
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce){
+  .rosary-label-toggle{ transition: none; }
+  .rosary-label-toggle:hover{ transform: none; }
+}
