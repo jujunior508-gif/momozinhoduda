@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=4">
+<link rel="stylesheet" href="style.css?v=7">
 </head>
 <body>
 
@@ -37,6 +37,9 @@
     <div class="eyebrow">uma pequena carta para</div>
     <h1 class="name">Eduarda</h1>
     <p class="sub">Tem uma coisa que eu preciso te dizer.</p>
+    <div class="hero-heart-3d" id="heroHeart3d" aria-hidden="true">
+      <model-viewer id="romanticHeart" data-src="coracao-flutuante.glb" camera-orbit="0deg 75deg 105%" interaction-prompt="none"></model-viewer>
+    </div>
 
     <div class="envelope-wrap">
       <a href="#letterSection" class="envelope-link" id="envelopeLink" aria-label="Abrir carta">
@@ -312,5 +315,37 @@
 
 
 <script src="script.js?v=4"></script>
+<script type="module">
+  const heart = document.getElementById('romanticHeart');
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  async function loadHeart() {
+    if (!heart || heart.dataset.loaded) return;
+    heart.dataset.loaded = 'true';
+    try {
+      await import('https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js');
+      heart.src = heart.dataset.src;
+      if (!reducedMotion) {
+        heart.setAttribute('autoplay', '');
+        heart.setAttribute('auto-rotate', '');
+        heart.setAttribute('rotation-per-second', '12deg');
+      }
+    } catch {
+      document.getElementById('heroHeart3d')?.remove();
+    }
+  }
+
+  if (heart && 'IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) {
+        observer.disconnect();
+        loadHeart();
+      }
+    }, { rootMargin: '180px' });
+    observer.observe(heart);
+  } else {
+    loadHeart();
+  }
+</script>
 </body>
 </html>
