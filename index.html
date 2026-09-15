@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=8">
+<link rel="stylesheet" href="style.css?v=9">
 </head>
 <body>
 
@@ -76,6 +76,44 @@
       <svg class="promise-heart" viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-10-9.1C.6 8.6 2 5 5.4 4.2 8 3.6 10 5 12 7.5 14 5 16 3.6 18.6 4.2 22 5 23.4 8.6 22 11.9 19.5 16.4 12 21 12 21z"/></svg>
       <p class="promise-text">Prometo escolher você de novo, todos os dias, do jeito mais simples e mais verdadeiro que eu souber.</p>
       <div class="promise-sign">eu te amo, Eduarda.</div>
+    </div>
+  </section>
+
+  <section class="counter-section" id="counterSection">
+    <div class="counter-card reveal" id="relationshipCounter" data-start="2026-07-04T00:00:00-03:00">
+      <div class="letter-eyebrow">a nossa história em números</div>
+      <h2 class="counter-title">Um tempo só nosso</h2>
+      <div class="counter-grid" aria-label="Tempo juntos">
+        <div><strong id="loveDays">—</strong><span>dias</span></div>
+        <div><strong id="loveHours">—</strong><span>horas</span></div>
+        <div><strong id="loveMinutes">—</strong><span>minutos</span></div>
+      </div>
+      <p class="counter-note" id="counterNote">cada instante com você já é especial.</p>
+    </div>
+  </section>
+
+  <section class="page open-when-section" id="openWhenSection">
+    <div class="open-when-wrap">
+      <div class="page-eyebrow">para guardar por perto</div>
+      <h2 class="page-title">Abra quando…</h2>
+      <div class="open-when-list">
+        <details class="open-when-note">
+          <summary>…você estiver triste <span>+</span></summary>
+          <p>Respira fundo. Você não precisa carregar tudo sozinha — eu estou aqui, em cada detalhe, torcendo por você.</p>
+        </details>
+        <details class="open-when-note">
+          <summary>…a saudade apertar <span>+</span></summary>
+          <p>Olha para o céu por um segundo. Em algum lugar, eu também vou estar pensando em você.</p>
+        </details>
+        <details class="open-when-note">
+          <summary>…você quiser sorrir <span>+</span></summary>
+          <p>Lembra de nós dois rindo de coisas pequenas? Ainda temos um monte de momentos bonitos para viver.</p>
+        </details>
+        <details class="open-when-note">
+          <summary>…precisar lembrar do meu amor <span>+</span></summary>
+          <p>Ele continua aqui: simples, inteiro e escolhendo você todos os dias.</p>
+        </details>
+      </div>
     </div>
   </section>
 
@@ -307,6 +345,10 @@
       <p>Essa história ainda está sendo escrita, e eu quero continuar escrevendo cada página dela com você.</p>
       <p>Eu te amo, Eduarda. Hoje, e nos dias que ainda vêm.</p>
       <div class="signature">— sempre seu.</div>
+      <div class="qr-card">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=260x260&amp;format=png&amp;data=https%3A%2F%2Fjujunior508-gif.github.io%2Fmomozinhoduda%2F" alt="QR code para abrir esta carta" loading="lazy">
+        <p>Aponte a câmera para guardar esta carta com você.</p>
+      </div>
     </div>
   </section>
 </main>
@@ -314,7 +356,7 @@
 <footer>feito com carinho para Eduarda</footer>
 
 
-<script src="script.js?v=5"></script>
+<script src="script.js?v=6"></script>
 <script type="module">
   const heart = document.getElementById('romanticHeart');
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
