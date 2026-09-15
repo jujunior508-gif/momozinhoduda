@@ -104,8 +104,8 @@
     }
     const petalsContainer = document.getElementById("petals");
     const petalCount = 14;
-    const petalSVG = `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-    <path d="M16 2C10 8 6 12 6 18a10 10 0 0020 0c0-6-4-10-10-16z" fill="#9c2b44" opacity="0.7"/>
+    const petalSVG = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 21s-7.5-4.6-10-9.1C.6 8.6 2 5 5.4 4.2 8 3.6 10 5 12 7.5 14 5 16 3.6 18.6 4.2 22 5 23.4 8.6 22 11.9 19.5 16.4 12 21 12 21z" fill="#ffffff" opacity="0.76"/>
   </svg>`;
     if (petalsContainer) {
       for (let i = 0;i < petalCount; i++) {
