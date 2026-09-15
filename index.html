@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=9">
+<link rel="stylesheet" href="style.css?v=10">
 </head>
 <body>
 
@@ -166,9 +166,10 @@
         <div class="page-eyebrow">no meio dessa história</div>
         <h2 class="page-title">Terço de São Bento</h2>
         <div class="rosary-ornament" aria-hidden="true"><span></span><i>✦</i><span></span></div>
-        <p class="rosary-intro">um momento de fé, cuidado e intenção por nós dois</p>
+        <p class="rosary-intro">uma pausa de fé, carinho e proteção para o nosso amor</p>
       </div>
-      <p class="rosary-caption" id="rosaryCaption">Comece pelo crucifixo e siga conta por conta — na ordem certa, do jeito que se reza.</p>
+      <p class="rosary-caption" id="rosaryCaption">Comece pelo crucifixo e siga cada conta no seu próprio ritmo. Esta oração é por nós.</p>
+      <button class="rosary-label-toggle" id="rosaryLabelsToggle" type="button" aria-pressed="true">ocultar legendas</button>
       <div class="rosary-order-guide" aria-label="Ordem do terço">
         <span class="guide-item"><b>1</b> crucifixo</span>
         <i aria-hidden="true">→</i>
@@ -219,8 +220,8 @@
           <span class="prayer-step" id="prayerStep">toque no crucifixo para começar</span>
           <span class="prayer-count" id="prayerCount">0 / 0</span>
         </div>
-        <h3 class="prayer-title" id="prayerTitle">Terço por nós dois</h3>
-        <p class="prayer-text" id="prayerText">Cada conta tem a sua oração. Toque no crucifixo e siga comigo — uma intenção por nós, Eduarda.</p>
+        <h3 class="prayer-title" id="prayerTitle">Uma oração por nós dois</h3>
+        <p class="prayer-text" id="prayerText">Cada conta guarda uma intenção. Toque no crucifixo e siga comigo, colocando o nosso amor nas mãos de Deus.</p>
         <div class="prayer-actions">
           <button class="game-reset prayer-next" id="prayerNext" type="button">próxima conta</button>
           <button class="game-reset" id="prayerReset" type="button">recomeçar o terço</button>
@@ -356,7 +357,7 @@
 <footer>feito com carinho para Eduarda</footer>
 
 
-<script src="script.js?v=6"></script>
+<script src="script.js?v=7"></script>
 <script type="module">
   const heart = document.getElementById('romanticHeart');
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
