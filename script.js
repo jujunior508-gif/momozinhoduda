@@ -612,6 +612,7 @@
   function initRosary() {
     const rosary = document.getElementById("rosary");
     const group = document.getElementById("rosaryGroup");
+    const labelsToggle = document.getElementById("rosaryLabelsToggle");
     if (!rosary || !group)
       return;
     group.innerHTML = "";
@@ -883,7 +884,7 @@ E, em seguida: ${GLORIA_TEXT}` : `${AVE_TEXT} (${OPENING_AVE_INTENTIONS[i]})`
           if (textEl)
             textEl.textContent = "Em nome do Pai, do Filho e do Espírito Santo. Amém. E, no fim, um obrigado: por cada oração que eu fiz pensando em nós, Eduarda.";
           if (captionEl)
-            captionEl.textContent = "você rezou o terço todo — toque numa conta pra rever qualquer passo.";
+            captionEl.textContent = "Você concluiu este momento de oração. Toque em qualquer conta para revisitar uma intenção.";
           const rect = rosary.getBoundingClientRect();
           burst(rect.left + rect.width / 2, rect.top + rect.height / 2, 24);
         }, 1200);
@@ -913,16 +914,21 @@ E, em seguida: ${GLORIA_TEXT}` : `${AVE_TEXT} (${OPENING_AVE_INTENTIONS[i]})`
       if (countEl)
         countEl.textContent = `0 / ${total}`;
       if (titleEl)
-        titleEl.textContent = "Terço por nós dois";
+        titleEl.textContent = "Uma oração por nós dois";
       if (textEl)
-        textEl.textContent = "Cada conta tem a sua oração. Toque no crucifixo e siga comigo — uma intenção por nós, Eduarda.";
+        textEl.textContent = "Cada conta guarda uma intenção. Toque no crucifixo e siga comigo, colocando o nosso amor nas mãos de Deus.";
       if (fillEl)
         fillEl.style.width = "0%";
       if (captionEl)
-        captionEl.textContent = "Comece pelo crucifixo e siga conta por conta — na ordem certa, do jeito que se reza.";
+        captionEl.textContent = "Comece pelo crucifixo e siga cada conta no seu próprio ritmo. Esta oração é por nós.";
     });
     if (countEl)
       countEl.textContent = `0 / ${total}`;
+    labelsToggle?.addEventListener("click", () => {
+      const hidden = rosary.classList.toggle("labels-hidden");
+      labelsToggle.setAttribute("aria-pressed", String(!hidden));
+      labelsToggle.textContent = hidden ? "mostrar legendas" : "ocultar legendas";
+    });
   }
 
   function initRelationshipCounter() {
